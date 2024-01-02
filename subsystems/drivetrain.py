@@ -13,11 +13,12 @@ from wpimath.kinematics import (
 from math import pi
 from robotcontainer import RobotContainer
 
+rc: RobotContainer = RobotContainer()
+
 
 # TODO: We want this to actually get a value from the IMU or gyro
 def get_heading() -> float:
-    cont = RobotContainer()
-    y = cont.gyro.get_yaw()
+    y = rc.gyro.get_yaw()
     return 0.0 if y is None else y
 
 
@@ -28,8 +29,8 @@ def get_heading_rotation_2d() -> Rotation2d:
 
 
 MAX_ANGULAR_SPEED = 2*pi  # 1 rotation per second
-MAX_SPEED: float = 144.0  # guessing at inches per second here; check old code
-WHEEL_RADIUS: float = 2  # inches
+MAX_SPEED: float = 120.0  # 10fpm seems safe for a chassis bot
+WHEEL_RADIUS: float = 2  # inches; double check that this is correct on bot
 DRIVE_GEAR_RATIO: float = 7.131
 EFFECTIVE_RADIUS: float = WHEEL_RADIUS / DRIVE_GEAR_RATIO
 DRIVE_RESOLUTION: int = 2048
@@ -200,6 +201,7 @@ class SwerveDrivetrain(commands2.SubsystemBase):
         self.back_right.set_state(br)
 
     def set_odometry_to_pose(self, pose: Pose2d) -> None:
+        # TODO: Implement?
         pass
 
     def set_odometry(self, x: float, y: float, heading: float) -> None:
