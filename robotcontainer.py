@@ -33,7 +33,8 @@ class RobotContainer:
         self.gyro = IMU()
 
     def _configure_controllers(self) -> None:
-        self.driver = wpilib.Joystick(0)
+        pass
+        #self.driver = wpilib.Joystick(0)
 
     def systime(self) -> float:
         from time import time

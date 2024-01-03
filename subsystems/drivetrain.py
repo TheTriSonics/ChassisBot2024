@@ -1,8 +1,10 @@
 import commands2
-from ctre import TalonFX, cancoder, TalonFXControlMode, NeutralMode
+from ctre import TalonFX, TalonFXControlMode, NeutralMode
+from ctre.sensors import CANCoder
+from commands.swervedrivecommand import SwerveDriveCommand 
 from wpimath.geometry import Translation2d, Pose2d, Rotation2d
 from wpimath.controller import PIDController
-from wpilib import Notifier, SmartDashboard
+from wpilib import Notifier, SmartDashboard, Joystick
 from wpimath.kinematics import (
     SwerveModulePosition,
     SwerveModuleState,
@@ -11,14 +13,13 @@ from wpimath.kinematics import (
     ChassisSpeeds,
 )
 from math import pi
-from robotcontainer import RobotContainer
 
-rc: RobotContainer = RobotContainer()
 
 
 # TODO: We want this to actually get a value from the IMU or gyro
 def get_heading() -> float:
-    y = rc.gyro.get_yaw()
+    # TODO: Make real
+    y = 0
     return 0.0 if y is None else y
 
 
@@ -41,7 +42,7 @@ class SwerveModule():
 
     drive_motor: TalonFX
     turn_motor: TalonFX
-    turn_encoder: cancoder = None
+    turn_encoder: CANCoder = None
     encoder_offset: int = 0
     turn_pid_controller: PIDController = PIDController(1/1000, 0, 0)
 
@@ -52,9 +53,9 @@ class SwerveModule():
                  turn_encoder_can_id, turn_encoder_offset=0,
                  name='', drive_disabled=False):
         from ctre import TalonFXInvertType
-        self.drive_motor = TalonFX(drive_motor_can_id)
-        self.turn_motor = TalonFX(turn_motor_can_id)
-        self.turn_encoder = cancoder(turn_encoder_can_id)
+        self.drive_motor = TalonFX(drive_motor_can_id, 'canivore')
+        self.turn_motor = TalonFX(turn_motor_can_id, 'canivore')
+        self.turn_encoder = CANCoder(turn_encoder_can_id, 'canivore')
         self.turn_encoder_offset = turn_encoder_offset
         self.name = name
         self.drive_disabled = drive_disabled
@@ -69,7 +70,7 @@ class SwerveModule():
         return self.get_turn_position()/TURN_RESOLUTION * 2 * pi
 
     def get_turn_position(self) -> float:
-        return self.turn_encoder.getValue()-self.encoder_offset
+        return self.turn_encoder.getAbsolutePosition() -self.encoder_offset
 
     def get_state(self) -> SwerveModulePosition:
         distance = (
@@ -89,7 +90,7 @@ class SwerveModule():
             state.speed / (2*pi*EFFECTIVE_RADIUS)
             * DRIVE_RESOLUTION * 0.1
         )
-        set_pos: float = state.angle.radians().value()/(2*pi) * TURN_RESOLUTION
+        set_pos: float = state.angle.radians()/(2*pi) * TURN_RESOLUTION
         revs: int = round(curr_pos / TURN_RESOLUTION)
         set_pos += revs * TURN_RESOLUTION
         while set_pos > curr_pos + TURN_RESOLUTION / 2:
@@ -104,7 +105,7 @@ class SwerveModule():
         self.turn_motor.set(TalonFXControlMode.PercentOutput, turn_power)
 
     def reset_turn_encoder(self) -> None:
-        self.encoder_offset = self.turn_encoder.getValue()
+        self.encoder_offset = self.turn_encoder.getAbsolutePosition()
 
     def stopDriveMotor(self) -> None:
         self.drive_motor.set(TalonFXControlMode.PercentOutput, 0)
@@ -122,9 +123,9 @@ class SwerveDrivetrain(commands2.SubsystemBase):
     back_left_location = Translation2d(-halfWheelBase, halfTrackWidth)
     back_right_location = Translation2d(-halfWheelBase, -halfWheelBase)
     # Create swerve modules
-    front_left = SwerveModule(10, 20, 0, 452, "Front Left", False)
+    front_left = SwerveModule(12, 22, 0, 452, "Front Left", False)
     front_right = SwerveModule(11, 21, 1, 3715, "Back Left", False)
-    back_left = SwerveModule(12, 22, 2, 1910, "Back Right", False)
+    back_left = SwerveModule(14, 24, 2, 1910, "Back Right", False)
     back_right = SwerveModule(13, 23, 3, 3984, "Front Right", False)
     field_relative = True
     drive_aligned = False
@@ -150,14 +151,16 @@ class SwerveDrivetrain(commands2.SubsystemBase):
 
     def __init__(self) -> None:
         super().__init__()
-        self.notifier = Notifier(self.update_odometry)
-        self.notifier.startPeriodic(0.01)
+        # self.notifier = Notifier(self.update_odometry)
+        # self.notifier.startPeriodic(0.01)
         # TODO: This is broken
         self.odometry.resetPosition(Rotation2d(), Pose2d(),
                                     self.front_left.get_state(),
                                     self.front_right.get_state(),
                                     self.back_left.get_state(),
                                     self.back_right.get_state())
+        joystick = Joystick(0)
+        self.setDefaultCommand(SwerveDriveCommand(self, joystick))
 
     def update_odometry(self) -> None:
         pass
@@ -174,7 +177,7 @@ class SwerveDrivetrain(commands2.SubsystemBase):
             deltaY = self.goalY - current_pose.Y()
             target_angle = atan2(deltaY, deltaX)*180/pi
             error_angle = (
-                target_angle - current_pose.rotation().degrees().value()
+                target_angle - current_pose.rotation().degrees()
             )
             while error_angle < -180:
                 error_angle += 360

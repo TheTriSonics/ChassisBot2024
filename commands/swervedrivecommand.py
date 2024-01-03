@@ -1,9 +1,8 @@
 
 import commands2
 from wpimath.filter import SlewRateLimiter
-from subsystems.drivetrain import (
-    MAX_SPEED, MAX_ANGULAR_SPEED, SwerveDrivetrain,
-)
+import constants
+import subsystems.drivetrain as dt
 from wpilib import Joystick
 from functools import wraps
 
@@ -34,36 +33,34 @@ class SwerveDriveCommand(commands2.CommandBase):
     yspeed_limiter: SlewRateLimiter = SlewRateLimiter(1.5)
     rot_limiter: SlewRateLimiter = SlewRateLimiter(3)
 
-    def __init__(self, drive: SwerveDrivetrain, controller: Joystick):
+    def __init__(self, drive, controller: Joystick):
+        super().__init__()
         self.drivetrain = drive
         self.controller = controller
         self.addRequirements(
-            [self.drivetrain],
+            self.drivetrain,
         )
 
     def initialize(self) -> None:
         pass
 
-    @square
-    @deadband(0.05)
+ 
     def get_driver_x(self) -> float:
         return self.controller.getRawAxis(0)
 
-    @square
-    @deadband(0.05)
+   
     def get_driver_y(self) -> float:
         return self.controller.getRawAxis(1)
 
-    @deadband(0.05)
     def get_driver_rot(self) -> float:
         return self.controller.getRawAxis(5)
 
     def execute(self) -> None:
-        xspeed = self.xspeed_limiter.calculate(self.get_driver_x())*MAX_SPEED
-        yspeed = self.yspeed_limiter.calculate(self.get_driver_y())*MAX_SPEED
+        xspeed = self.xspeed_limiter.calculate(self.get_driver_x())*constants.MAX_SPEED
+        yspeed = self.yspeed_limiter.calculate(self.get_driver_y())*constants.MAX_SPEED
         rot = self.rot_limiter.calculate(
             self.get_driver_rot()
-        )*MAX_ANGULAR_SPEED*-0.5
+        )*constants.MAX_ANGULAR_SPEED*-0.5
         self.drivetrain.drive(xspeed, yspeed, rot)
 
     def isFinished(self) -> bool:
