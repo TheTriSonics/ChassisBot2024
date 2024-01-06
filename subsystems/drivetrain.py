@@ -4,7 +4,7 @@ from ctre.sensors import CANCoder
 from commands.swervedrivecommand import SwerveDriveCommand 
 from wpimath.geometry import Translation2d, Pose2d, Rotation2d
 from wpimath.controller import PIDController
-from wpilib import Notifier, SmartDashboard, Joystick
+from wpilib import Notifier, SmartDashboard, Joystick, AnalogInput
 from wpimath.kinematics import (
     SwerveModulePosition,
     SwerveModuleState,
@@ -42,7 +42,7 @@ class SwerveModule():
 
     drive_motor: TalonFX
     turn_motor: TalonFX
-    turn_encoder: CANCoder = None
+    turn_encoder: AnalogInput = None
     encoder_offset: int = 0
     turn_pid_controller: PIDController = PIDController(1/1000, 0, 0)
 
@@ -55,7 +55,7 @@ class SwerveModule():
         from ctre import TalonFXInvertType
         self.drive_motor = TalonFX(drive_motor_can_id, 'canivore')
         self.turn_motor = TalonFX(turn_motor_can_id, 'canivore')
-        self.turn_encoder = CANCoder(turn_encoder_can_id, 'canivore')
+        self.turn_encoder = AnalogInput(turn_encoder_can_id)
         self.turn_encoder_offset = turn_encoder_offset
         self.name = name
         self.drive_disabled = drive_disabled
@@ -70,7 +70,7 @@ class SwerveModule():
         return self.get_turn_position()/TURN_RESOLUTION * 2 * pi
 
     def get_turn_position(self) -> float:
-        return self.turn_encoder.getAbsolutePosition() -self.encoder_offset
+        return self.turn_encoder.getValue() -self.encoder_offset
 
     def get_state(self) -> SwerveModulePosition:
         distance = (
@@ -105,7 +105,7 @@ class SwerveModule():
         self.turn_motor.set(TalonFXControlMode.PercentOutput, turn_power)
 
     def reset_turn_encoder(self) -> None:
-        self.encoder_offset = self.turn_encoder.getAbsolutePosition()
+        self.encoder_offset = self.turn_encoder.getValue()
 
     def stopDriveMotor(self) -> None:
         self.drive_motor.set(TalonFXControlMode.PercentOutput, 0)
