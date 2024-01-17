@@ -13,7 +13,7 @@ from wpimath.geometry import Rotation2d
 
 
 class IMU(commands2.SubsystemBase):
-    gyro: Pigeon2 = Pigeon2(30, 'canivore')
+    gyro: Pigeon2 = Pigeon2(41)
     initial_heading: Rotation2d
     xoffset: float = 0
     yoffset: float = 0
