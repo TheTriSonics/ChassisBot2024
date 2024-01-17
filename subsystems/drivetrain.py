@@ -1,7 +1,7 @@
 import commands2
 from phoenix6.hardware import CANcoder, TalonFX
 from phoenix6 import configs, signals, controls
-from commands.swervedrivecommand import SwerveDriveCommand 
+from commands.swervedrivecommand import SwerveDriveCommand
 from wpimath.geometry import Translation2d, Pose2d, Rotation2d
 from wpimath.controller import PIDController
 from wpilib import Notifier, SmartDashboard, Joystick, AnalogInput
@@ -13,7 +13,6 @@ from wpimath.kinematics import (
     ChassisSpeeds,
 )
 from math import pi
-
 
 
 # TODO: We want this to actually get a value from the IMU or gyro
@@ -43,7 +42,7 @@ class SwerveModule():
     drive_motor: TalonFX
     turn_motor: TalonFX
     turn_encoder: CANcoder
-    encoder_offset: int = 0
+    encoder_offset: float = 0
     turn_pid_controller: PIDController = PIDController(1/1000, 0, 0)
 
     drive_disabled = False
@@ -68,14 +67,14 @@ class SwerveModule():
         configurator.apply(motor_configs)
 
     def get_drive_velocity(self) -> float:
-        vel = self.drive_motor.get_velocity()
+        vel = self.drive_motor.get_velocity().value
         return vel * 10/DRIVE_RESOLUTION * 2 * pi * EFFECTIVE_RADIUS
 
     def get_turn_position_radians(self) -> float:
         return self.get_turn_position()/TURN_RESOLUTION * 2 * pi
 
     def get_turn_position(self) -> float:
-        return self.turn_encoder.get_position().value -self.encoder_offset
+        return self.turn_encoder.get_position().value-self.encoder_offset
 
     def get_state(self) -> SwerveModulePosition:
         distance = (
@@ -95,7 +94,7 @@ class SwerveModule():
             state.speed / (2*pi*EFFECTIVE_RADIUS)
             * DRIVE_RESOLUTION * 0.1
         )
-        set_pos: float = state.angle.radians()/(2*pi) * TURN_RESOLUTION
+        set_pos: float = state.angle.radians().value/(2*pi) * TURN_RESOLUTION
         revs: int = round(curr_pos / TURN_RESOLUTION)
         set_pos += revs * TURN_RESOLUTION
         while set_pos > curr_pos + TURN_RESOLUTION / 2:
@@ -110,7 +109,7 @@ class SwerveModule():
         self.turn_motor.set_control(controls.DutyCycleOut(turn_power))
 
     def reset_turn_encoder(self) -> None:
-        self.encoder_offset = self.turn_encoder.getValue()
+        self.encoder_offset = self.turn_encoder.get_position().value
 
     def stopDriveMotor(self) -> None:
         self.drive_motor.set_control(controls.DutyCycleOut(0))
@@ -159,7 +158,16 @@ class SwerveDrivetrain(commands2.SubsystemBase):
         # self.notifier = Notifier(self.update_odometry)
         # self.notifier.startPeriodic(0.01)
         # TODO: This is broken
-        # self.odometry.resetPosition(Rotation2d(),tuple[self.front_left.get_turn_position(), self.front_right.get_turn_position(), self.back_left.get_turn_position(), self.back_right.get_turn_position()],Pose2d())
+
+        self.odometry.resetPosition(
+            Rotation2d(0),
+            Pose2d(),
+            self.front_left.get_state(),
+            self.front_right.get_state(),
+            self.back_left.get_state(),
+            self.back_right.get_state()
+        )
+        # self.odometry.resetPosition(Rotation2d(),tuple[],Pose2d())
         joystick = Joystick(0)
         self.setDefaultCommand(SwerveDriveCommand(self, joystick))
 
@@ -178,7 +186,7 @@ class SwerveDrivetrain(commands2.SubsystemBase):
             deltaY = self.goalY - current_pose.Y()
             target_angle = atan2(deltaY, deltaX)*180/pi
             error_angle = (
-                target_angle - current_pose.rotation().degrees()
+                target_angle - current_pose.rotation().degrees().value
             )
             while error_angle < -180:
                 error_angle += 360
@@ -210,12 +218,14 @@ class SwerveDrivetrain(commands2.SubsystemBase):
 
     def set_odometry(self, x: float, y: float, heading: float) -> None:
         # set initial heading on gyro
-        self.odometry.resetPosition(arg0=get_heading_rotation_2d(),
-                                    arg1=Pose2d(),
-                                    arg2=self.front_left.get_state(),
-                                    arg3=self.front_right.get_state(),
-                                    arg4=self.back_left.get_state(),
-                                    arg5=self.back_right.get_state())
+        self.odometry.resetPosition(
+            Rotation2d(0),
+            Pose2d(),
+            self.front_left.get_state(),
+            self.front_right.get_state(),
+            self.back_left.get_state(),
+            self.back_right.get_state()
+        )
 
     def _get_modules(self) -> list[SwerveModule]:
         return [self.front_left, self.front_right,
