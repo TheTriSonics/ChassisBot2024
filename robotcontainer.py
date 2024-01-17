@@ -29,12 +29,12 @@ class RobotContainer:
         return cls.instance
 
     def _configure_robot_hardware(self) -> None:
-        self.drivetrain = SwerveDrivetrain()
         self.gyro = IMU()
+        self.drivetrain = SwerveDrivetrain(self.gyro)
 
     def _configure_controllers(self) -> None:
         pass
-        #self.driver = wpilib.Joystick(0)
+        # self.driver = wpilib.Joystick(0)
 
     def systime(self) -> float:
         from time import time

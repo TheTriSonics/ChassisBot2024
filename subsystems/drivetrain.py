@@ -15,19 +15,6 @@ from wpimath.kinematics import (
 from math import pi
 
 
-# TODO: We want this to actually get a value from the IMU or gyro
-def get_heading() -> float:
-    # TODO: Make real
-    y = 0
-    return 0.0 if y is None else y
-
-
-# Helper method to return the heading as a Rotation2d typed object because
-# that's often how we need it.
-def get_heading_rotation_2d() -> Rotation2d:
-    return Rotation2d(get_heading())
-
-
 MAX_ANGULAR_SPEED = 2*pi  # 1 rotation per second
 MAX_SPEED: float = 120.0  # 10fpm seems safe for a chassis bot
 WHEEL_RADIUS: float = 2  # inches; double check that this is correct on bot
@@ -51,7 +38,6 @@ class SwerveModule():
     def __init__(self, drive_motor_can_id, turn_motor_can_id,
                  turn_encoder_can_id, turn_encoder_offset=0,
                  name='', drive_disabled=False):
-        from phoenix6.signals import InvertedValue
         self.drive_motor = TalonFX(drive_motor_can_id)
         self.turn_motor = TalonFX(turn_motor_can_id)
         self.turn_encoder = CANcoder(turn_encoder_can_id)
@@ -150,14 +136,15 @@ class SwerveDrivetrain(commands2.SubsystemBase):
         back_right_location,
     )
 
-    odometry = SwerveDrive4Odometry(kinematics, Rotation2d(get_heading()),
+    odometry = SwerveDrive4Odometry(kinematics, Rotation2d(0),
                                     default_pos)
 
-    def __init__(self) -> None:
+    def __init__(self, imu) -> None:
         super().__init__()
         # self.notifier = Notifier(self.update_odometry)
         # self.notifier.startPeriodic(0.01)
-        # TODO: This is broken
+
+        self.imu = imu
 
         self.odometry.resetPosition(
             Rotation2d(0),
@@ -170,6 +157,15 @@ class SwerveDrivetrain(commands2.SubsystemBase):
         # self.odometry.resetPosition(Rotation2d(),tuple[],Pose2d())
         joystick = Joystick(0)
         self.setDefaultCommand(SwerveDriveCommand(self, joystick))
+
+    def get_heading(self) -> float:
+        y = self.imu.getYaw()
+        return 0.0 if y is None else y
+
+    # Helper method to return the heading as a Rotation2d typed object because
+    # that's often how we need it.
+    def get_heading_rotation_2d(self) -> Rotation2d:
+        return Rotation2d(self.get_heading())
 
     def update_odometry(self) -> None:
         pass
@@ -198,7 +194,7 @@ class SwerveDrivetrain(commands2.SubsystemBase):
         if self.field_relative:
             fl, fr, bl, br = self.kinematics.toSwerveModuleStates(
                 ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xspeed, yspeed, rot, get_heading_rotation_2d()
+                    xspeed, yspeed, rot, self.get_heading_rotation_2d()
                 )
             )
         else:
