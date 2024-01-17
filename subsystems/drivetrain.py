@@ -1,6 +1,6 @@
 import commands2
-from ctre import TalonFX, TalonFXControlMode, NeutralMode
-from ctre.sensors import CANCoder
+from phoenix6.hardware import CANcoder, TalonFX
+from phoenix6 import configs, signals, controls
 from commands.swervedrivecommand import SwerveDriveCommand 
 from wpimath.geometry import Translation2d, Pose2d, Rotation2d
 from wpimath.controller import PIDController
@@ -52,15 +52,20 @@ class SwerveModule():
     def __init__(self, drive_motor_can_id, turn_motor_can_id,
                  turn_encoder_can_id, turn_encoder_offset=0,
                  name='', drive_disabled=False):
-        from ctre import TalonFXInvertType
-        self.drive_motor = TalonFX(drive_motor_can_id, 'canivore')
-        self.turn_motor = TalonFX(turn_motor_can_id, 'canivore')
-        self.turn_encoder = AnalogInput(turn_encoder_can_id)
+        from phoenix6.signals import InvertedValue
+        self.drive_motor = TalonFX(drive_motor_can_id)
+        self.turn_motor = TalonFX(turn_motor_can_id)
+        self.turn_encoder = CANcoder(turn_encoder_can_id)
         self.turn_encoder_offset = turn_encoder_offset
         self.name = name
         self.drive_disabled = drive_disabled
-        self.drive_motor.setNeutralMode(NeutralMode.Brake)
-        self.turn_motor.setInverted(TalonFXInvertType.Clockwise)
+        configurator = self.drive_motor.configurator
+        motor_configs = configs.MotorOutputConfigs()
+
+        motor_configs.inverted = signals.InvertedValue.CLOCKWISE_POSITIVE
+        motor_configs.neutral_mode = signals.NeutralModeValue.BRAKE
+
+        configurator.apply(motor_configs)
 
     def get_drive_velocity(self) -> float:
         vel = self.drive_motor.getSelectedSensorVelocity()
@@ -99,17 +104,17 @@ class SwerveModule():
             set_pos += TURN_RESOLUTION
 
         if not self.drive_disabled:
-            self.drive_motor.set(TalonFXControlMode.Velocity, drive_vel)
+            self.drive_motor.set_control(controls.DutyCycleOut(drive_vel))
         self.turn_pid_controller.setSetpoint(set_pos)
         turn_power: float = self.turn_pid_controller.calculate(curr_pos)
-        self.turn_motor.set(TalonFXControlMode.PercentOutput, turn_power)
+        self.turn_motor.set_control(controls.DutyCycleOut(turn_power))
 
     def reset_turn_encoder(self) -> None:
         self.encoder_offset = self.turn_encoder.getValue()
 
     def stopDriveMotor(self) -> None:
-        self.drive_motor.set(TalonFXControlMode.PercentOutput, 0)
-        self.turn_motor.set(TalonFXControlMode.PercentOutput, 0)
+        self.drive_motor.set_control(controls.DutyCycleOut(0))
+        self.turn_motor.set_control(controls.DutyCycleOut(0))
 
 
 class SwerveDrivetrain(commands2.SubsystemBase):
@@ -123,10 +128,10 @@ class SwerveDrivetrain(commands2.SubsystemBase):
     back_left_location = Translation2d(-halfWheelBase, halfTrackWidth)
     back_right_location = Translation2d(-halfWheelBase, -halfWheelBase)
     # Create swerve modules
-    front_left = SwerveModule(12, 22, 0, 452, "Front Left", False)
-    front_right = SwerveModule(11, 21, 1, 3715, "Back Left", False)
-    back_left = SwerveModule(14, 24, 2, 1910, "Back Right", False)
-    back_right = SwerveModule(13, 23, 3, 3984, "Front Right", False)
+    front_left = SwerveModule(12, 22, 32, 452, "Front Left", False)
+    front_right = SwerveModule(11, 21, 31, 3715, "Back Left", False)
+    back_left = SwerveModule(14, 24, 34, 1910, "Back Right", False)
+    back_right = SwerveModule(13, 23, 33, 3984, "Front Right", False)
     field_relative = True
     drive_aligned = False
     goalX = 27 * 12
@@ -220,13 +225,13 @@ class SwerveDrivetrain(commands2.SubsystemBase):
         return [self.front_left, self.front_right,
                 self.back_left, self.back_right]
 
-    def force_brake_mode(self) -> None:
-        for module in self._get_modules():
-            module.drive_motor.setNeutralMode(NeutralMode.Brake)
+    # def force_brake_mode(self) -> None:
+    #     for module in self._get_modules():
+    #         module.drive_motor.setNeutralMode(NeutralMode.Brake)
 
-    def force_coast_mode(self) -> None:
-        for module in self._get_modules():
-            module.drive_motor.setNeutralMode(NeutralMode.Coast)
+    # def force_coast_mode(self) -> None:
+    #     for module in self._get_modules():
+    #         module.drive_motor.setNeutralMode(NeutralMode.Coast)
 
     def reset_turn_encoders(self):
         for module in self._get_modules():

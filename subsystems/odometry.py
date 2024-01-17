@@ -1,6 +1,6 @@
 import commands2
 from typing import Optional
-from ctre.sensors import Pigeon2
+from phoenix6.hardware import Pigeon2
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d, Pose2d
 
