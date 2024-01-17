@@ -42,7 +42,7 @@ class SwerveModule():
 
     drive_motor: TalonFX
     turn_motor: TalonFX
-    turn_encoder: AnalogInput = None
+    turn_encoder: CANcoder
     encoder_offset: int = 0
     turn_pid_controller: PIDController = PIDController(1/1000, 0, 0)
 
@@ -68,18 +68,18 @@ class SwerveModule():
         configurator.apply(motor_configs)
 
     def get_drive_velocity(self) -> float:
-        vel = self.drive_motor.getSelectedSensorVelocity()
+        vel = self.drive_motor.get_velocity()
         return vel * 10/DRIVE_RESOLUTION * 2 * pi * EFFECTIVE_RADIUS
 
     def get_turn_position_radians(self) -> float:
         return self.get_turn_position()/TURN_RESOLUTION * 2 * pi
 
     def get_turn_position(self) -> float:
-        return self.turn_encoder.getValue() -self.encoder_offset
+        return self.turn_encoder.get_position().value -self.encoder_offset
 
     def get_state(self) -> SwerveModulePosition:
         distance = (
-            self.drive_motor.getSelectedSensorPosition() /
+            self.turn_encoder.get_position().value /
             DRIVE_RESOLUTION*2*pi*EFFECTIVE_RADIUS
         )
         rads = self.get_turn_position_radians()
@@ -159,11 +159,7 @@ class SwerveDrivetrain(commands2.SubsystemBase):
         # self.notifier = Notifier(self.update_odometry)
         # self.notifier.startPeriodic(0.01)
         # TODO: This is broken
-        self.odometry.resetPosition(Rotation2d(), Pose2d(),
-                                    self.front_left.get_state(),
-                                    self.front_right.get_state(),
-                                    self.back_left.get_state(),
-                                    self.back_right.get_state())
+        # self.odometry.resetPosition(Rotation2d(),tuple[self.front_left.get_turn_position(), self.front_right.get_turn_position(), self.back_left.get_turn_position(), self.back_right.get_turn_position()],Pose2d())
         joystick = Joystick(0)
         self.setDefaultCommand(SwerveDriveCommand(self, joystick))
 

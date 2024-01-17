@@ -43,4 +43,4 @@ class IMU(commands2.SubsystemBase):
         return ypr
 
     def periodic(self) -> None:
-        SmartDashboard.putNumber('Yaw', self.gyro.getYaw())
+        SmartDashboard.putNumber('Yaw', self.gyro.get_yaw().value)

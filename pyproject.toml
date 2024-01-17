@@ -18,7 +18,7 @@ robotpy_extras = [
     # "navx"
     # "pathplannerlib"
     # "phoenix5"
-    # "phoenix6"
+    "phoenix6"
     # "playingwithfusion"
     # "rev"
     # "romi"
@@ -27,4 +27,7 @@ robotpy_extras = [
 ]
 
 # Other pip packages to install
-requires = []
+requires = [
+    "robotpy-commands-v2==2024.0.0b4",
+    "phoenix6~=24.1"
+]
