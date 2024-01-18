@@ -59,12 +59,12 @@ class SwerveModule():
 
     def get_turn_position_radians(self) -> float:
         return self.get_turn_position()/TURN_RESOLUTION * 2 * pi
-    
+
     def get_raw_turn_position(self) -> float:
         return self.turn_encoder.get_absolute_position().value
 
     def get_turn_position(self) -> float:
-        return self.turn_encoder.get_position().value-self.encoder_offset
+        return self.turn_encoder.get_absolute_position().value
 
     def get_state(self) -> SwerveModulePosition:
         distance = (
@@ -95,7 +95,11 @@ class SwerveModule():
 
         if not self.drive_disabled:
             SmartDashboard.putNumber(self.name + ' drive vel', drive_vel)
-            self.drive_motor.set_control(controls.DutyCycleOut(drive_vel))
+            # This dutyCycleOut wants a value between -1.0 and 1.0 for speed
+            # self.drive_motor.set_control(controls.DutyCycleOut(drive_vel))
+            rotations_per_second = drive_vel / (2*pi*EFFECTIVE_RADIUS)
+            c = controls.VelocityDutyCycle(velocity=rotations_per_second)
+            self.drive_motor.set_control(c)
         self.turn_pid_controller.setSetpoint(set_pos)
         turn_power: float = self.turn_pid_controller.calculate(curr_pos)
         self.turn_motor.set_control(controls.DutyCycleOut(turn_power))
@@ -156,10 +160,10 @@ class SwerveDrivetrain(commands2.SubsystemBase):
             gyroAngle=Rotation2d(0),
             pose=Pose2d(),
             modulePositions=(
-            self.front_left.get_state(),
-            self.front_right.get_state(),
-            self.back_left.get_state(),
-            self.back_right.get_state())
+             self.front_left.get_state(),
+             self.front_right.get_state(),
+             self.back_left.get_state(),
+             self.back_right.get_state())
         )
         # self.odometry.resetPosition(Rotation2d(),tuple[],Pose2d())
         joystick = Joystick(0)
@@ -205,6 +209,7 @@ class SwerveDrivetrain(commands2.SubsystemBase):
                 )
             )
         else:
+            # Wants inputs in meters per second, not raw stick value
             cs = ChassisSpeeds(xspeed, yspeed)
             fl, fr, bl, br = (
                 self.kinematics.toSwerveModuleStates(cs)
@@ -224,15 +229,8 @@ class SwerveDrivetrain(commands2.SubsystemBase):
         pass
 
     def set_odometry(self, x: float, y: float, heading: float) -> None:
-        # set initial heading on gyro
-        self.odometry.resetPosition(
-            Rotation2d(0),
-            Pose2d(),
-            self.front_left.get_state(),
-            self.front_right.get_state(),
-            self.back_left.get_state(),
-            self.back_right.get_state()
-        )
+        # broken
+        pass
 
     def _get_modules(self) -> list[SwerveModule]:
         return [self.front_left, self.front_right,
