@@ -3,7 +3,7 @@ import commands2
 from wpimath.filter import SlewRateLimiter
 import constants
 import subsystems.drivetrain as dt
-from wpilib import Joystick
+from wpilib import Joystick, SmartDashboard
 from functools import wraps
 
 
@@ -61,6 +61,9 @@ class SwerveDriveCommand(commands2.CommandBase):
         rot = self.rot_limiter.calculate(
             self.get_driver_rot()
         )*constants.MAX_ANGULAR_SPEED*-0.5
+        SmartDashboard.putNumber("X Speed", xspeed)
+        SmartDashboard.putNumber("y Speed", yspeed)
+        SmartDashboard.putNumber("Rot", rot)
         self.drivetrain.drive(xspeed, yspeed, rot)
 
     def isFinished(self) -> bool:

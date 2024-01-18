@@ -26,21 +26,21 @@ class IMU(commands2.SubsystemBase):
         self.gyro.zeroGyroBiasNow()
 
     def get_yaw(self) -> Optional[float]:
-        self.gyro.getYaw()
+        self.gyro.get_yaw()
 
     def get_pitch(self) -> Optional[float]:
-        self.gyro.getPitch()
+        self.gyro.get_pitch()
 
     def get_roll(self) -> Optional[float]:
-        return self.gyro.getRoll()
+        return self.gyro.get_roll()
 
-    def get_ypr(self) -> List[float]:
-        _, ypr = self.gyro.getYawPitchRoll()
-        # TODO: Check for error codes and do something?
-        # This could be a case where we check for an exception and raise it,
-        # thus halting the robot, but only if we're not attached to the FMS.
-        # If we are, then perhaps return the last value and hope it resolves?
-        return ypr
+    # def get_ypr(self) -> List[float]:
+    #     _, ypr = self.gyro.getYawPitchRoll()
+    #     # TODO: Check for error codes and do something?
+    #     # This could be a case where we check for an exception and raise it,
+    #     # thus halting the robot, but only if we're not attached to the FMS.
+    #     # If we are, then perhaps return the last value and hope it resolves?
+    #     return ypr
 
     def periodic(self) -> None:
         SmartDashboard.putNumber('Yaw', self.gyro.get_yaw().value)

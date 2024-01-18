@@ -16,12 +16,12 @@ from math import pi
 
 
 MAX_ANGULAR_SPEED = 2*pi  # 1 rotation per second
-MAX_SPEED: float = 120.0  # 10fpm seems safe for a chassis bot
+MAX_SPEED: float = 1.0  # 10fpm seems safe for a chassis bot
 WHEEL_RADIUS: float = 2  # inches; double check that this is correct on bot
 DRIVE_GEAR_RATIO: float = 7.131
 EFFECTIVE_RADIUS: float = WHEEL_RADIUS / DRIVE_GEAR_RATIO
 DRIVE_RESOLUTION: int = 2048
-TURN_RESOLUTION: int = 4096
+TURN_RESOLUTION: int = 1
 
 
 class SwerveModule():
@@ -40,10 +40,11 @@ class SwerveModule():
                  name='', drive_disabled=False):
         self.drive_motor = TalonFX(drive_motor_can_id)
         self.turn_motor = TalonFX(turn_motor_can_id)
-        self.turn_encoder = CANcoder(turn_encoder_can_id)
+        self.turn_encoder = CANcoder(turn_encoder_can_id, "rio")
         self.turn_encoder_offset = turn_encoder_offset
         self.name = name
         self.drive_disabled = drive_disabled
+
         configurator = self.drive_motor.configurator
         motor_configs = configs.MotorOutputConfigs()
 
@@ -58,6 +59,9 @@ class SwerveModule():
 
     def get_turn_position_radians(self) -> float:
         return self.get_turn_position()/TURN_RESOLUTION * 2 * pi
+    
+    def get_raw_turn_position(self) -> float:
+        return self.turn_encoder.get_absolute_position().value
 
     def get_turn_position(self) -> float:
         return self.turn_encoder.get_position().value-self.encoder_offset
@@ -80,7 +84,8 @@ class SwerveModule():
             state.speed / (2*pi*EFFECTIVE_RADIUS)
             * DRIVE_RESOLUTION * 0.1
         )
-        set_pos: float = state.angle.radians().value/(2*pi) * TURN_RESOLUTION
+        drive_vel = 0.05
+        set_pos: float = state.angle.radians()/(2*pi) * TURN_RESOLUTION
         revs: int = round(curr_pos / TURN_RESOLUTION)
         set_pos += revs * TURN_RESOLUTION
         while set_pos > curr_pos + TURN_RESOLUTION / 2:
@@ -89,6 +94,7 @@ class SwerveModule():
             set_pos += TURN_RESOLUTION
 
         if not self.drive_disabled:
+            SmartDashboard.putNumber(self.name + ' drive vel', drive_vel)
             self.drive_motor.set_control(controls.DutyCycleOut(drive_vel))
         self.turn_pid_controller.setSetpoint(set_pos)
         turn_power: float = self.turn_pid_controller.calculate(curr_pos)
@@ -113,14 +119,14 @@ class SwerveDrivetrain(commands2.SubsystemBase):
     back_left_location = Translation2d(-halfWheelBase, halfTrackWidth)
     back_right_location = Translation2d(-halfWheelBase, -halfWheelBase)
     # Create swerve modules
-    front_left = SwerveModule(12, 22, 32, 452, "Front Left", False)
-    front_right = SwerveModule(11, 21, 31, 3715, "Back Left", False)
-    back_left = SwerveModule(14, 24, 34, 1910, "Back Right", False)
-    back_right = SwerveModule(13, 23, 33, 3984, "Front Right", False)
-    field_relative = True
+    front_left = SwerveModule(12, 22, 32, 0, "Front Left", False)
+    front_right = SwerveModule(11, 21, 31, 0, "Back Left", False)
+    back_left = SwerveModule(14, 24, 34, 0, "Back Right", False)
+    back_right = SwerveModule(13, 23, 33, 0, "Front Right", False)
+    field_relative = False
     drive_aligned = False
-    goalX = 27 * 12
-    goalY = 27 * 6
+    goalX = 0
+    goalY = 0
     kP = 0.015
     default_pos = (
         SwerveModulePosition(0, Rotation2d(0)),
@@ -147,19 +153,20 @@ class SwerveDrivetrain(commands2.SubsystemBase):
         self.imu = imu
 
         self.odometry.resetPosition(
-            Rotation2d(0),
-            Pose2d(),
+            gyroAngle=Rotation2d(0),
+            pose=Pose2d(),
+            modulePositions=(
             self.front_left.get_state(),
             self.front_right.get_state(),
             self.back_left.get_state(),
-            self.back_right.get_state()
+            self.back_right.get_state())
         )
         # self.odometry.resetPosition(Rotation2d(),tuple[],Pose2d())
         joystick = Joystick(0)
         self.setDefaultCommand(SwerveDriveCommand(self, joystick))
 
     def get_heading(self) -> float:
-        y = self.imu.getYaw()
+        y = self.imu.get_yaw()
         return 0.0 if y is None else y
 
     # Helper method to return the heading as a Rotation2d typed object because
@@ -182,7 +189,7 @@ class SwerveDrivetrain(commands2.SubsystemBase):
             deltaY = self.goalY - current_pose.Y()
             target_angle = atan2(deltaY, deltaX)*180/pi
             error_angle = (
-                target_angle - current_pose.rotation().degrees().value
+                target_angle - current_pose.rotation().degrees()
             )
             while error_angle < -180:
                 error_angle += 360
@@ -202,6 +209,10 @@ class SwerveDrivetrain(commands2.SubsystemBase):
             fl, fr, bl, br = (
                 self.kinematics.toSwerveModuleStates(cs)
             )
+        SmartDashboard.putNumber("FL Speed", fl.speed)
+        SmartDashboard.putNumber("FR Speed", fr.speed)
+        SmartDashboard.putNumber("BL Speed", bl.speed)
+        SmartDashboard.putNumber("BR Speed", br.speed)
 
         self.front_left.set_state(fl)
         self.front_right.set_state(fr)
@@ -247,13 +258,13 @@ class SwerveDrivetrain(commands2.SubsystemBase):
     # be called directly.
     def periodic(self):
         SmartDashboard.putNumber("Back Right",
-                                 self.back_right.get_turn_position())
+                                 self.back_right.get_raw_turn_position())
         SmartDashboard.putNumber("Back Left",
-                                 self.back_left.get_turn_position())
+                                 self.back_left.get_raw_turn_position())
         SmartDashboard.putNumber("Front Right",
-                                 self.front_right.get_turn_position())
+                                 self.front_right.get_raw_turn_position())
         SmartDashboard.putNumber("Front Left",
-                                 self.front_left.get_turn_position())
+                                 self.front_left.get_raw_turn_position())
         """
         pose: Pose2d = self.get_odometry().getPoseMeters()
         SmartDashboard.putNumber("X", pose.X())
