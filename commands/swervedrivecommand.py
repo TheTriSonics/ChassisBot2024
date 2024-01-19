@@ -53,7 +53,7 @@ class SwerveDriveCommand(commands2.CommandBase):
         return self.controller.getRawAxis(1)
 
     def get_driver_rot(self) -> float:
-        return self.controller.getRawAxis(5)
+        return self.controller.getRawAxis(4)
 
     def execute(self) -> None:
         xspeed = self.xspeed_limiter.calculate(self.get_driver_x())*constants.MAX_SPEED

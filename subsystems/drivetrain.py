@@ -45,13 +45,28 @@ class SwerveModule():
         self.name = name
         self.drive_disabled = drive_disabled
 
-        configurator = self.drive_motor.configurator
-        motor_configs = configs.MotorOutputConfigs()
+        driveConfigurator = self.drive_motor.configurator
+        drive_motor_configs = configs.MotorOutputConfigs()
 
-        motor_configs.inverted = signals.InvertedValue.CLOCKWISE_POSITIVE
-        motor_configs.neutral_mode = signals.NeutralModeValue.BRAKE
+        turnConfigurator = self.turn_motor.configurator
+        turn_motor_configs = configs.MotorOutputConfigs()
 
-        configurator.apply(motor_configs)
+        drive_motor_configs.inverted = signals.InvertedValue.CLOCKWISE_POSITIVE
+        drive_motor_configs.neutral_mode = signals.NeutralModeValue.BRAKE
+
+        slot0Turning = configs.Slot0Configs()
+        slot0Driving = configs.Slot0Configs()
+
+        slot0Turning.k_p = 0.1
+        slot0Turning.k_d = 0.002
+
+        slot0Driving.k_v = 0.0465
+        slot0Driving.k_p = 0.0
+
+        driveConfigurator.apply(drive_motor_configs)
+        driveConfigurator.apply(slot0Driving)
+
+        turnConfigurator.apply(slot0Turning)
 
     def get_drive_velocity(self) -> float:
         vel = self.drive_motor.get_velocity().value
@@ -68,9 +83,10 @@ class SwerveModule():
 
     def get_state(self) -> SwerveModulePosition:
         distance = (
-            self.turn_encoder.get_position().value /
+            self.drive_motor.get_rotor_position().value / 
             DRIVE_RESOLUTION*2*pi*EFFECTIVE_RADIUS
         )
+        SmartDashboard.putNumber(f'd {self.name}', distance)
         rads = self.get_turn_position_radians()
         return SwerveModulePosition(distance, Rotation2d(rads))
 
@@ -84,7 +100,6 @@ class SwerveModule():
             state.speed / (2*pi*EFFECTIVE_RADIUS)
             * DRIVE_RESOLUTION * 0.1
         )
-        drive_vel = 0.05
         set_pos: float = state.angle.radians()/(2*pi) * TURN_RESOLUTION
         revs: int = round(curr_pos / TURN_RESOLUTION)
         set_pos += revs * TURN_RESOLUTION
@@ -129,8 +144,8 @@ class SwerveDrivetrain(commands2.SubsystemBase):
     back_right = SwerveModule(13, 23, 33, 0, "Front Right", False)
     field_relative = False
     drive_aligned = False
-    goalX = 0
-    goalY = 0
+    goalX = 12
+    goalY = 24
     kP = 0.015
     default_pos = (
         SwerveModulePosition(0, Rotation2d(0)),
@@ -149,10 +164,11 @@ class SwerveDrivetrain(commands2.SubsystemBase):
     odometry = SwerveDrive4Odometry(kinematics, Rotation2d(0),
                                     default_pos)
 
-    def __init__(self, imu) -> None:
+    def __init__(self, imu, joystick) -> None:
+        self.upd_counter = 0
         super().__init__()
-        # self.notifier = Notifier(self.update_odometry)
-        # self.notifier.startPeriodic(0.01)
+        self.notifier = Notifier(self.update_odometry)
+        self.notifier.startPeriodic(0.01)
 
         self.imu = imu
 
@@ -166,7 +182,6 @@ class SwerveDrivetrain(commands2.SubsystemBase):
              self.back_right.get_state())
         )
         # self.odometry.resetPosition(Rotation2d(),tuple[],Pose2d())
-        joystick = Joystick(0)
         self.setDefaultCommand(SwerveDriveCommand(self, joystick))
 
     def get_heading(self) -> float:
@@ -179,7 +194,15 @@ class SwerveDrivetrain(commands2.SubsystemBase):
         return Rotation2d(self.get_heading())
 
     def update_odometry(self) -> None:
-        pass
+        self.upd_counter += 1
+        SmartDashboard.putNumber('upd counter', self.upd_counter)
+        self.odometry.update(
+            self.get_heading_rotation_2d(),
+            (self.front_left.get_state(),
+             self.front_right.get_state(),
+             self.back_left.get_state(),
+             self.back_right.get_state())
+        )
 
     def drive(self, xspeed: float, yspeed: float, rot: float):
         # if self.drive_aligned:
@@ -191,16 +214,24 @@ class SwerveDrivetrain(commands2.SubsystemBase):
             current_pose = self.odometry.getPose()
             deltaX = self.goalX - current_pose.X()
             deltaY = self.goalY - current_pose.Y()
+
+            SmartDashboard.putNumber('deltaX', deltaX)
+            SmartDashboard.putNumber('deltaY', deltaY)
+
             target_angle = atan2(deltaY, deltaX)*180/pi
-            error_angle = (
-                target_angle - current_pose.rotation().degrees()
-            )
+            current_angle = current_pose.rotation().degrees()
+            SmartDashboard.putNumber('target', target_angle)
+            SmartDashboard.putNumber('curr', current_angle)
+            error_angle = (target_angle - current_angle)
+            SmartDashboard.putNumber('erro1', error_angle)
             while error_angle < -180:
                 error_angle += 360
             while error_angle > 180:
                 error_angle += 360
 
+            SmartDashboard.putNumber('erro2', error_angle)
             rot = error_angle / 180 * MAX_ANGULAR_SPEED
+            SmartDashboard.putNumber('rot drivetrain', rot)
 
         if self.field_relative:
             fl, fr, bl, br = self.kinematics.toSwerveModuleStates(
@@ -210,7 +241,7 @@ class SwerveDrivetrain(commands2.SubsystemBase):
             )
         else:
             # Wants inputs in meters per second, not raw stick value
-            cs = ChassisSpeeds(xspeed, yspeed)
+            cs = ChassisSpeeds(xspeed, yspeed, rot)
             fl, fr, bl, br = (
                 self.kinematics.toSwerveModuleStates(cs)
             )

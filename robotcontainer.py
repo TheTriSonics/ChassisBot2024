@@ -1,15 +1,16 @@
 import typing
 import commands2
 import commands2.button
-import wpilib
 from subsystems.drivetrain import SwerveDrivetrain
 from subsystems.imu import IMU
+from wpilib import Joystick
 
 
 class RobotContainer:
 
     curr_x: float = 0
     curr_y: float = 0
+    driver_joystick: Joystick
     gyro: IMU
     drivetrain: SwerveDrivetrain
 
@@ -30,7 +31,8 @@ class RobotContainer:
 
     def _configure_robot_hardware(self) -> None:
         self.gyro = IMU()
-        self.drivetrain = SwerveDrivetrain(self.gyro)
+        self.driver_joystick = Joystick(0)
+        self.drivetrain = SwerveDrivetrain(self.gyro, self.driver_joystick)
 
     def _configure_controllers(self) -> None:
         pass
