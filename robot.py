@@ -16,7 +16,8 @@ import drivetrain
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
-        self.controller = wpilib.XboxController(0)
+        # self.controller = wpilib.XboxController(0)
+        self.controller = wpilib.Joystick(0)
         self.swerve = drivetrain.Drivetrain()
 
         # Slew rate limiters to make joystick inputs more gentle; 1/3 sec from 0 to 1.
@@ -30,13 +31,14 @@ class MyRobot(wpilib.TimedRobot):
 
     def teleopPeriodic(self) -> None:
         self.driveWithJoystick(True)
+        self.swerve.updateOdometry()
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
         # Get the x speed. We are inverting this because Xbox controllers return
         # negative values when we push forward.
         xSpeed = (
             -self.xspeedLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getLeftY(), 0.02)
+                wpimath.applyDeadband(self.controller.getRawAxis(1), 0.02)
             )
             * drivetrain.kMaxSpeed
         )
@@ -46,7 +48,7 @@ class MyRobot(wpilib.TimedRobot):
         # return positive values when you pull to the right by default.
         ySpeed = (
             -self.yspeedLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getLeftX(), 0.02)
+                wpimath.applyDeadband(self.controller.getRawAxis(0), 0.02)
             )
             * drivetrain.kMaxSpeed
         )
@@ -57,7 +59,7 @@ class MyRobot(wpilib.TimedRobot):
         # the right by default.
         rot = (
             -self.rotLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getRightX(), 0.02)
+                wpimath.applyDeadband(self.controller.getRawAxis(4), 0.02)
             )
             * drivetrain.kMaxSpeed
         )

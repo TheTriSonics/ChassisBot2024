@@ -9,9 +9,11 @@ import wpilib
 import wpimath.geometry
 import wpimath.kinematics
 import swervemodule
+from phoenix6.hardware import Pigeon2
+from wpilib import SmartDashboard
 
 kMaxSpeed = 3.0  # 3 meters per second
-kMaxAngularSpeed = math.pi  # 1/2 rotation per second
+kMaxAngularSpeed = math.pi
 
 
 class Drivetrain:
@@ -25,12 +27,12 @@ class Drivetrain:
         self.backLeftLocation = wpimath.geometry.Translation2d(-0.381, 0.381)
         self.backRightLocation = wpimath.geometry.Translation2d(-0.381, -0.381)
 
-        self.frontLeft = swervemodule.SwerveModule(1, 2, 0, 1, 2, 3)
-        self.frontRight = swervemodule.SwerveModule(3, 4, 4, 5, 6, 7)
-        self.backLeft = swervemodule.SwerveModule(5, 6, 8, 9, 10, 11)
-        self.backRight = swervemodule.SwerveModule(7, 8, 12, 13, 14, 15)
+        self.frontLeft = swervemodule.SwerveModule(12, 22, 32, 'Front left')
+        self.frontRight = swervemodule.SwerveModule(11, 21, 31, 'Front right')
+        self.backLeft = swervemodule.SwerveModule(14, 24, 34, 'Back left')
+        self.backRight = swervemodule.SwerveModule(13, 23, 33, 'Back right')
 
-        self.gyro = wpilib.AnalogGyro(0)
+        self.gyro = Pigeon2(41, "rio")
 
         self.kinematics = wpimath.kinematics.SwerveDrive4Kinematics(
             self.frontLeftLocation,
@@ -39,9 +41,14 @@ class Drivetrain:
             self.backRightLocation,
         )
 
+        rot_deg = self.gyro.get_yaw().value
+        rot_rad = math.radians(rot_deg)
+        SmartDashboard.putNumber('yaw deg', rot_deg)
+        SmartDashboard.putNumber('yaw radg', rot_rad)
+
         self.odometry = wpimath.kinematics.SwerveDrive4Odometry(
             self.kinematics,
-            self.gyro.getRotation2d(),
+            wpimath.geometry.Rotation2d(rot_rad),
             (
                 self.frontLeft.getPosition(),
                 self.frontRight.getPosition(),
@@ -50,7 +57,8 @@ class Drivetrain:
             ),
         )
 
-        self.gyro.reset()
+        # self.gyro.reset()  # TODO
+
 
     def drive(
         self,
@@ -71,7 +79,7 @@ class Drivetrain:
         swerveModuleStates = self.kinematics.toSwerveModuleStates(
             wpimath.kinematics.ChassisSpeeds.discretize(
                 wpimath.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeed, ySpeed, rot, self.gyro.getRotation2d()
+                    xSpeed, ySpeed, rot, wpimath.geometry.Rotation2d(self.gyro.get_yaw().value)
                 )
                 if fieldRelative
                 else wpimath.kinematics.ChassisSpeeds(xSpeed, ySpeed, rot),
@@ -89,7 +97,7 @@ class Drivetrain:
     def updateOdometry(self) -> None:
         """Updates the field relative position of the robot."""
         self.odometry.update(
-            self.gyro.getRotation2d(),
+            wpimath.geometry.Rotation2d(self.gyro.get_yaw().value),
             (
                 self.frontLeft.getPosition(),
                 self.frontRight.getPosition(),
