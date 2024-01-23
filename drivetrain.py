@@ -12,7 +12,7 @@ import swervemodule
 from phoenix6.hardware import Pigeon2
 from wpilib import SmartDashboard
 
-kMaxSpeed = 3.0  # 3 meters per second
+kMaxSpeed = 400.0  # 3 meters per second
 kMaxAngularSpeed = math.pi
 
 

@@ -11,7 +11,7 @@ import wpilib.drive
 import wpimath.filter
 import wpimath.controller
 import drivetrain
-
+from wpilib import SmartDashboard
 
 class MyRobot(wpilib.TimedRobot):
     def robotInit(self) -> None:
@@ -61,7 +61,8 @@ class MyRobot(wpilib.TimedRobot):
             -self.rotLimiter.calculate(
                 wpimath.applyDeadband(self.controller.getRawAxis(4), 0.02)
             )
-            * drivetrain.kMaxSpeed
         )
-
+        SmartDashboard.putNumber('xspeed', xSpeed)
+        SmartDashboard.putNumber('yspeed', ySpeed)
+        SmartDashboard.putNumber('rot', rot)
         self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())

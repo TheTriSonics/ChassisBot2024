@@ -13,6 +13,7 @@ import wpimath.trajectory
 from phoenix6.hardware import TalonFX, CANcoder
 from phoenix6.controls import DutyCycleOut
 from wpilib import SmartDashboard
+from phoenix6 import configs, signals, controls
 
 kWheelRadius = 0.0508
 kEncoderResolution = 4096
@@ -39,7 +40,18 @@ class SwerveModule:
         
         self.driveMotor = TalonFX(driveMotorChannel)
         self.turningMotor = TalonFX(turningMotorChannel)
+        
+        driveConfigurator = self.driveMotor.configurator
+        drive_motor_configs = configs.MotorOutputConfigs()
 
+        turnConfigurator = self.turningMotor.configurator
+        turn_motor_configs = configs.MotorOutputConfigs()
+
+        turn_motor_configs.inverted = signals.InvertedValue.CLOCKWISE_POSITIVE
+        turn_motor_configs.neutral_mode = signals.NeutralModeValue.BRAKE
+
+        driveConfigurator.apply(drive_motor_configs)
+        turnConfigurator.apply(turn_motor_configs)
         """
         self.turningEncoder = wpilib.Encoder(
             turningEncoderChannelA, turningEncoderChannelB
@@ -67,9 +79,10 @@ class SwerveModule:
         )
         """
         
-        self.turningPIDController = wpimath.controller.PIDController(
-            0.007, 0, 0
+        self.turningPIDController = wpimath.controller.ProfiledPIDController(
+            0.20, 0, 0, wpimath.trajectory.TrapezoidProfile.Constraints(math.pi, math.tau)
         )
+        #self.turningPIDController.setTolerance(1)
 
         # Set the distance per pulse for the drive encoder. We can simply use the
         # distance traveled for one rotation of the wheel divided by the encoder
@@ -128,7 +141,7 @@ class SwerveModule:
         # Scale speed by cosine of angle error. This scales down movement perpendicular to the desired
         # direction of travel that can occur when modules change directions. This results in smoother
         # driving.
-        # state.speed *= (state.angle - encoderRotation).cos()
+        state.speed *= (state.angle - encoderRotation).cos()
 
         # Calculate the drive output from the drive PID controller.
         driveOutput = self.drivePIDController.calculate(
@@ -141,9 +154,11 @@ class SwerveModule:
         turnOutput = self.turningPIDController.calculate(
             turn_pos, state.angle.radians()
         )
+        err = self.turningPIDController.getPositionError()
+        SmartDashboard.putNumber(f'{self.name} er', err)
         # Display the turning encoder value for this module
         SmartDashboard.putNumber(self.name, turn_pos)
-        SmartDashboard.putNumber(self.name + ' out', turnOutput)
+        SmartDashboard.putNumber(self.name + ' out', driveOutput)
 
-        # self.driveMotor.set_control(DutyCycleOut(driveOutput))
+        self.driveMotor.set_control(DutyCycleOut(driveOutput))
         self.turningMotor.set_control(DutyCycleOut(turnOutput))
