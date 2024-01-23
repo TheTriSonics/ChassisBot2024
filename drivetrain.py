@@ -5,14 +5,14 @@
 #
 
 import math
-import wpilib
 import wpimath.geometry
 import wpimath.kinematics
 import swervemodule
 from phoenix6.hardware import Pigeon2
 from wpilib import SmartDashboard
 
-kMaxSpeed = 400.0  # 3 meters per second
+# TODO: Set to a real value in centimeters per second
+kMaxSpeed = 400.0
 kMaxAngularSpeed = math.pi
 
 
@@ -22,6 +22,7 @@ class Drivetrain:
     """
 
     def __init__(self) -> None:
+        # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = wpimath.geometry.Translation2d(0.381, 0.381)
         self.frontRightLocation = wpimath.geometry.Translation2d(0.381, -0.381)
         self.backLeftLocation = wpimath.geometry.Translation2d(-0.381, 0.381)
@@ -59,6 +60,8 @@ class Drivetrain:
 
         # self.gyro.reset()  # TODO
 
+    def get_heading_rotation_2d(self) -> wpimath.geometry.Rotation2d:
+        return wpimath.geometry.Rotation2d(self.gyro.get_yaw().value)
 
     def drive(
         self,
@@ -73,13 +76,14 @@ class Drivetrain:
         :param xSpeed: Speed of the robot in the x direction (forward).
         :param ySpeed: Speed of the robot in the y direction (sideways).
         :param rot: Angular rate of the robot.
-        :param fieldRelative: Whether the provided x and y speeds are relative to the field.
+        :param fieldRelative: Whether the provided x and y speeds are relative
+        :      to the field.
         :param periodSeconds: Time
         """
         swerveModuleStates = self.kinematics.toSwerveModuleStates(
             wpimath.kinematics.ChassisSpeeds.discretize(
                 wpimath.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
-                    xSpeed, ySpeed, rot, wpimath.geometry.Rotation2d(self.gyro.get_yaw().value)
+                    xSpeed, ySpeed, rot, self.get_heading_rotation_2d(),
                 )
                 if fieldRelative
                 else wpimath.kinematics.ChassisSpeeds(xSpeed, ySpeed, rot),
@@ -97,7 +101,7 @@ class Drivetrain:
     def updateOdometry(self) -> None:
         """Updates the field relative position of the robot."""
         self.odometry.update(
-            wpimath.geometry.Rotation2d(self.gyro.get_yaw().value),
+            self.get_heading_rotation_2d(),
             (
                 self.frontLeft.getPosition(),
                 self.frontRight.getPosition(),
