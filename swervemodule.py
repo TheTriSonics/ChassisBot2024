@@ -15,7 +15,7 @@ from phoenix6.controls import DutyCycleOut
 from wpilib import SmartDashboard
 from phoenix6 import configs, signals, controls
 
-kWheelRadius = 0.0508
+kWheelRadius = 4.9
 kEncoderResolution = 4096
 kModuleMaxAngularVelocity = math.pi
 kModuleMaxAngularAcceleration = math.tau
@@ -63,42 +63,10 @@ class SwerveModule:
         self.turnEncoder = CANcoder(canCoderChannel)
 
         # Gains are for example purposes only - must be determined for your own robot!
-        self.drivePIDController = wpimath.controller.PIDController(0.001, 0, 0)
+        self.drivePIDController = wpimath.controller.PIDController(0.003, 0, 0)
+        self.turningPIDController = wpimath.controller.PIDController(0.25, 0, 0)
 
-        # Gains are for example purposes only - must be determined for your own robot!
-        # JJB: Not sure what a profiled PID controller is; not using it for now
-        """
-        self.turningPIDController = wpimath.controller.ProfiledPIDController(
-            0.005,
-            0,
-            0,
-            wpimath.trajectory.TrapezoidProfile.Constraints(
-                kModuleMaxAngularVelocity,
-                kModuleMaxAngularAcceleration,
-            ),
-        )
-        """
-        
-        self.turningPIDController = wpimath.controller.ProfiledPIDController(
-            0.20, 0, 0, wpimath.trajectory.TrapezoidProfile.Constraints(math.pi, math.tau)
-        )
-        #self.turningPIDController.setTolerance(1)
-
-        # Set the distance per pulse for the drive encoder. We can simply use the
-        # distance traveled for one rotation of the wheel divided by the encoder
-        # resolution.
-        """
-        self.driveEncoder.setDistancePerPulse(
-            math.tau * kWheelRadius / kEncoderResolution
-        )
-        """
-
-        # Set the distance (in this case, angle) in radians per pulse for the turning encoder.
-        # This is the the angle through an entire rotation (2 * pi) divided by the
-        # encoder resolution.
-        # Not needed on CANcoder
-        # self.turningEncoder.setDistancePerPulse(math.tau / kEncoderResolution)
-
+        self.driveMotor.
         # Limit the PID Controller's input range between -pi and pi and set the input
         # to be continuous.
         self.turningPIDController.enableContinuousInput(-math.pi, math.pi)
@@ -109,17 +77,18 @@ class SwerveModule:
         :returns: The current state of the module.
         """
         speed = self.driveMotor.get_rotor_velocity().value
-        rot = wpimath.geometry.Rotation2d(self.turningMotor.get_rotor_position().value)
+        rot = wpimath.geometry.Rotation2d(self.driveMotor.get_rotor_position().value)
         return wpimath.kinematics.SwerveModuleState(speed, rot)
 
 
     def getPosition(self) -> wpimath.kinematics.SwerveModulePosition:
         """Returns the current position of the module.
 
-        :returns: The current position of the module.
+        :returns: The current position of the module.:46
+        
         """
         speed = self.driveMotor.get_rotor_velocity().value
-        rot = wpimath.geometry.Rotation2d(self.turningMotor.get_rotor_position().value)
+        rot = wpimath.geometry.Rotation2d(self.driveMotor.get_rotor_position().value)
         return wpimath.kinematics.SwerveModulePosition(speed, rot)
 
     def setDesiredState(

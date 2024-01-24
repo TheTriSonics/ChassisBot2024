@@ -12,8 +12,8 @@ from phoenix6.hardware import Pigeon2
 from wpilib import SmartDashboard
 
 # TODO: Set to a real value in centimeters per second
-kMaxSpeed = 400.0
-kMaxAngularSpeed = math.pi
+kMaxSpeed = 200.0
+kMaxAngularSpeed = math.pi*4
 
 
 class Drivetrain:
@@ -23,10 +23,10 @@ class Drivetrain:
 
     def __init__(self) -> None:
         # TODO: Set these to the right numbers in centimeters
-        self.frontLeftLocation = wpimath.geometry.Translation2d(0.381, 0.381)
-        self.frontRightLocation = wpimath.geometry.Translation2d(0.381, -0.381)
-        self.backLeftLocation = wpimath.geometry.Translation2d(-0.381, 0.381)
-        self.backRightLocation = wpimath.geometry.Translation2d(-0.381, -0.381)
+        self.frontLeftLocation = wpimath.geometry.Translation2d(30, 30)
+        self.frontRightLocation = wpimath.geometry.Translation2d(30, -30)
+        self.backLeftLocation = wpimath.geometry.Translation2d(-30, 30)
+        self.backRightLocation = wpimath.geometry.Translation2d(-30, -30)
 
         self.frontLeft = swervemodule.SwerveModule(12, 22, 32, 'Front left')
         self.frontRight = swervemodule.SwerveModule(11, 21, 31, 'Front right')
@@ -42,14 +42,9 @@ class Drivetrain:
             self.backRightLocation,
         )
 
-        rot_deg = self.gyro.get_yaw().value
-        rot_rad = math.radians(rot_deg)
-        SmartDashboard.putNumber('yaw deg', rot_deg)
-        SmartDashboard.putNumber('yaw radg', rot_rad)
-
         self.odometry = wpimath.kinematics.SwerveDrive4Odometry(
             self.kinematics,
-            wpimath.geometry.Rotation2d(rot_rad),
+            self.get_heading_rotation_2d(),
             (
                 self.frontLeft.getPosition(),
                 self.frontRight.getPosition(),
@@ -58,10 +53,10 @@ class Drivetrain:
             ),
         )
 
-        # self.gyro.reset()  # TODO
+        self.gyro.set_yaw(0)
 
     def get_heading_rotation_2d(self) -> wpimath.geometry.Rotation2d:
-        return wpimath.geometry.Rotation2d(self.gyro.get_yaw().value)
+        return wpimath.geometry.Rotation2d(math.radians(self.gyro.get_yaw().value))
 
     def drive(
         self,
@@ -71,6 +66,7 @@ class Drivetrain:
         fieldRelative: bool,
         periodSeconds: float,
     ) -> None:
+        SmartDashboard.putBoolean("Fr", fieldRelative)
         """
         Method to drive the robot using joystick info.
         :param xSpeed: Speed of the robot in the x direction (forward).
@@ -109,3 +105,8 @@ class Drivetrain:
                 self.backRight.getPosition(),
             ),
         )
+        pose = self.odometry.getPose()
+        SmartDashboard.putNumber("x", pose.X())
+        SmartDashboard.putNumber("y", pose.Y())
+        SmartDashboard.putNumber("heading",self.get_heading_rotation_2d().degrees())
+        SmartDashboard.putNumber("h2",self.gyro.get_yaw().value)

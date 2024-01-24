@@ -26,10 +26,10 @@ class MyRobot(wpilib.TimedRobot):
         self.swerve = drivetrain.Drivetrain()
 
         # Slew rate limiters to make joystick inputs more gentle
-        # 1/3 sec from 0 to 1.
-        self.xspeedLimiter = wpimath.filter.SlewRateLimiter(3)
-        self.yspeedLimiter = wpimath.filter.SlewRateLimiter(3)
-        self.rotLimiter = wpimath.filter.SlewRateLimiter(3)
+       
+        self.xspeedLimiter = wpimath.filter.SlewRateLimiter(2)
+        self.yspeedLimiter = wpimath.filter.SlewRateLimiter(2)
+        self.rotLimiter = wpimath.filter.SlewRateLimiter(1)
 
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)
@@ -41,25 +41,31 @@ class MyRobot(wpilib.TimedRobot):
 
     def driveWithJoystick(self, fieldRelative: bool) -> None:
         xSpeed = (
-            -self.xspeedLimiter.calculate(
+            self.xspeedLimiter.calculate(
                 wpimath.applyDeadband(self.controller.getRawAxis(1), 0.02)
             )
-            * drivetrain.kMaxSpeed
+            
         )
+        xsign = 1 if xSpeed > 0 else -1
+        xSpeed = xSpeed * xSpeed * xsign* drivetrain.kMaxSpeed
 
         ySpeed = (
-            -self.yspeedLimiter.calculate(
+            self.yspeedLimiter.calculate(
                 wpimath.applyDeadband(self.controller.getRawAxis(0), 0.02)
             )
-            * drivetrain.kMaxSpeed
+            
         )
-
+        ysign = 1 if ySpeed > 0 else -1
+        ySpeed = ySpeed * ySpeed * ysign* drivetrain.kMaxSpeed
         rot = (
             -self.rotLimiter.calculate(
                 wpimath.applyDeadband(self.controller.getRawAxis(4), 0.02)
             )
+           
         )
+        rotsign = 1 if rot > 0 else -1
+        rot = rot * rot * rotsign * drivetrain.kMaxAngularSpeed
         SmartDashboard.putNumber('xspeed', xSpeed)
         SmartDashboard.putNumber('yspeed', ySpeed)
         SmartDashboard.putNumber('rot', rot)
-        self.swerve.drive(xSpeed, ySpeed, rot, fieldRelative, self.getPeriod())
+        self.swerve.drive(xSpeed, ySpeed, rot, False, self.getPeriod())
