@@ -19,7 +19,8 @@ from wpilib import SmartDashboard
 kModuleMaxAngularVelocity = math.pi
 kModuleMaxAngularAcceleration = math.tau
 kWheelRadius = 4.9  # cm
-kEncoderResolution = 4096
+kGearRatio = 7.131
+kEncoderResolution = 2048 
 
 
 class SwerveModule:
@@ -44,9 +45,10 @@ class SwerveModule:
         driveConfigurator = self.driveMotor.configurator
 
         drive_feedback = configs.FeedbackConfigs()
-        drive_feedback.with_sensor_to_mechanism_ratio(
-            math.tau * kWheelRadius / kEncoderResolution
-        )
+        #  distance = m_driveMotor.getSelectedSensorPosition() /kDriveResolution * 2 * Math.PI * kEffectiveRadius;
+        # ratio = kEncoderResolution * math.tau * (kWheelRadius / kGearRatio) 
+        ratio = 1
+        drive_feedback.with_sensor_to_mechanism_ratio(1/ratio)
         driveConfigurator.apply(drive_feedback)
 
         turnConfigurator = self.turningMotor.configurator
@@ -63,14 +65,15 @@ class SwerveModule:
         # Limit the PID Controller's input range between -pi and pi and
         # set the input to be continuous.
         self.turningPIDController.enableContinuousInput(-math.pi, math.pi)
+        self.driveMotor.set_position(0)
 
     def getState(self) -> wpimath.kinematics.SwerveModuleState:
         """Returns the current state of the module.
 
         :returns: The current state of the module.
         """
-        speed = self.driveMotor.get_rotor_velocity().value
-        rot = Rotation2d(self.driveMotor.get_position().value)
+        speed = self.driveMotor.get_rotor_velocity().value * 4.6
+        rot = Rotation2d(self.turnEncoder.get_absolute_position().value * math.tau)
         return wpimath.kinematics.SwerveModuleState(speed, rot)
 
     def getPosition(self) -> wpimath.kinematics.SwerveModulePosition:
@@ -78,10 +81,14 @@ class SwerveModule:
 
         :returns: The current position of the module.:46
 
+
         """
-        speed = self.driveMotor.get_rotor_velocity().value
-        rot = Rotation2d(self.driveMotor.get_position().value)
-        return wpimath.kinematics.SwerveModulePosition(speed, rot)
+        pos = self.driveMotor.get_position().value
+        # Now convert from rotation units to centimeters
+        # distance = pos * math.tau * kWheelRadius
+        distance = pos * 4.6 # convert rotations to centimeters
+        rot = Rotation2d(self.turnEncoder.get_absolute_position().value * math.tau)
+        return wpimath.kinematics.SwerveModulePosition(distance, rot)
 
     def setDesiredState(
         self, desiredState: wpimath.kinematics.SwerveModuleState

@@ -33,6 +33,13 @@ class Drivetrain:
         self.backLeft = swervemodule.SwerveModule(14, 24, 34, 'Back left')
         self.backRight = swervemodule.SwerveModule(13, 23, 33, 'Back right')
 
+        defaultPos = [
+            wpimath.kinematics.SwerveModulePosition(0, wpimath.geometry.Rotation2d(0)),
+            wpimath.kinematics.SwerveModulePosition(0, wpimath.geometry.Rotation2d(0)),
+            wpimath.kinematics.SwerveModulePosition(0, wpimath.geometry.Rotation2d(0)),
+            wpimath.kinematics.SwerveModulePosition(0, wpimath.geometry.Rotation2d(0)),
+        ]
+
         self.gyro = Pigeon2(41, "rio")
 
         self.kinematics = wpimath.kinematics.SwerveDrive4Kinematics(
@@ -51,6 +58,10 @@ class Drivetrain:
                 self.backLeft.getPosition(),
                 self.backRight.getPosition(),
             ),
+        )
+
+        self.odometry.resetPosition(
+            wpimath.geometry.Rotation2d(), defaultPos, wpimath.geometry.Pose2d()
         )
 
         self.gyro.set_yaw(0)
@@ -109,4 +120,3 @@ class Drivetrain:
         SmartDashboard.putNumber("x", pose.X())
         SmartDashboard.putNumber("y", pose.Y())
         SmartDashboard.putNumber("heading",self.get_heading_rotation_2d().degrees())
-        SmartDashboard.putNumber("h2",self.gyro.get_yaw().value)

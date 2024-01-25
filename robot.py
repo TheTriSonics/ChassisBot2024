@@ -10,15 +10,17 @@
 # keep track of, so we'll use centimeters instead)
 
 import wpilib
+import commands2
 import wpimath
 import wpilib.drive
 import wpimath.filter
 import wpimath.controller
 import drivetrain
 from wpilib import SmartDashboard
+from commands.drivefortime import DriveForTime
 
 
-class MyRobot(wpilib.TimedRobot):
+class MyRobot(commands2.TimedCommandRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
         # self.controller = wpilib.XboxController(0)
@@ -30,6 +32,10 @@ class MyRobot(wpilib.TimedRobot):
         self.xspeedLimiter = wpimath.filter.SlewRateLimiter(2)
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(2)
         self.rotLimiter = wpimath.filter.SlewRateLimiter(1)
+
+    def autonomousInit(self):
+        cmd = DriveForTime(self.swerve)
+        cmd.schedule()
 
     def autonomousPeriodic(self) -> None:
         self.driveWithJoystick(False)
