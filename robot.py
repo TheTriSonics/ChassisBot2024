@@ -38,7 +38,7 @@ class MyRobot(commands2.TimedCommandRobot):
         cmd.schedule()
 
     def autonomousPeriodic(self) -> None:
-        self.driveWithJoystick(False)
+        # self.driveWithJoystick(False)
         self.swerve.updateOdometry()
 
     def teleopPeriodic(self) -> None:
