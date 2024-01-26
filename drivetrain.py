@@ -10,6 +10,9 @@ import wpimath.kinematics
 import swervemodule
 from phoenix6.hardware import Pigeon2
 from wpilib import SmartDashboard
+from wpimath.geometry import Rotation2d
+from wpimath.kinematics import SwerveModuleState
+from typing import Tuple
 
 # TODO: Set to a real value in centimeters per second
 kMaxSpeed = 200.0
@@ -33,12 +36,12 @@ class Drivetrain:
         self.backLeft = swervemodule.SwerveModule(14, 24, 34, 'Back left')
         self.backRight = swervemodule.SwerveModule(13, 23, 33, 'Back right')
 
-        defaultPos = [
-            wpimath.kinematics.SwerveModulePosition(0, wpimath.geometry.Rotation2d(0)),
-            wpimath.kinematics.SwerveModulePosition(0, wpimath.geometry.Rotation2d(0)),
-            wpimath.kinematics.SwerveModulePosition(0, wpimath.geometry.Rotation2d(0)),
-            wpimath.kinematics.SwerveModulePosition(0, wpimath.geometry.Rotation2d(0)),
-        ]
+        defaultPos = (
+            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+        )
 
         self.gyro = Pigeon2(41, "rio")
 
@@ -61,13 +64,13 @@ class Drivetrain:
         )
 
         self.odometry.resetPosition(
-            wpimath.geometry.Rotation2d(), defaultPos, wpimath.geometry.Pose2d()
+            Rotation2d(), defaultPos, wpimath.geometry.Pose2d()
         )
 
         self.gyro.set_yaw(0)
 
-    def get_heading_rotation_2d(self) -> wpimath.geometry.Rotation2d:
-        return wpimath.geometry.Rotation2d(math.radians(self.gyro.get_yaw().value))
+    def get_heading_rotation_2d(self) -> Rotation2d:
+        return Rotation2d(math.radians(self.gyro.get_yaw().value))
 
     def drive(
         self,
@@ -104,24 +107,26 @@ class Drivetrain:
         self.frontRight.setDesiredState(swerveModuleStates[1])
         self.backLeft.setDesiredState(swerveModuleStates[2])
         self.backRight.setDesiredState(swerveModuleStates[3])
-    
+
     def lockWheels(self):
-        for sm in [self.frontLeft, self.frontRight, self.backLeft, self.backRight]:
+        for sm in [self.frontLeft, self.frontRight,
+                   self.backLeft, self.backRight]:
             sm.lock()
 
-    def setStates(self,fl,fr,bl,br):
+    def setStates(self, fl: SwerveModuleState, fr: SwerveModuleState,
+                  bl: SwerveModuleState, br: SwerveModuleState):
         self.frontLeft.setDesiredState(fl)
         self.frontRight.setDesiredState(fr)
         self.backLeft.setDesiredState(bl)
         self.backRight.setDesiredState(br)
 
-    def getAngles(self):
+    def getAngles(self) -> Tuple[float, float, float, float]:
         flAng = self.frontLeft.getState().angle.radians()
         frAng = self.frontRight.getState().angle.radians()
         blAng = self.backLeft.getState().angle.radians()
         brAng = self.backRight.getState().angle.radians()
         return flAng, frAng, blAng, brAng
-    
+
     def updateOdometry(self) -> None:
         """Updates the field relative position of the robot."""
         self.odometry.update(
@@ -136,4 +141,5 @@ class Drivetrain:
         pose = self.odometry.getPose()
         SmartDashboard.putNumber("x", pose.X())
         SmartDashboard.putNumber("y", pose.Y())
-        SmartDashboard.putNumber("heading",self.get_heading_rotation_2d().degrees())
+        SmartDashboard.putNumber("heading",
+                                 self.get_heading_rotation_2d().degrees())

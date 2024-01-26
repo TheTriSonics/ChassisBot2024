@@ -17,6 +17,7 @@ import wpimath.filter
 import wpimath.controller
 import drivetrain
 from wpilib import SmartDashboard
+from commands.drivefortime import DriveForTime
 from commands.drivefordistance import DriveForDistance
 from commands.haltdrive import HaltDrive
 
@@ -29,7 +30,7 @@ class MyRobot(commands2.TimedCommandRobot):
         self.swerve = drivetrain.Drivetrain()
 
         # Slew rate limiters to make joystick inputs more gentle
-       
+
         self.xspeedLimiter = wpimath.filter.SlewRateLimiter(2)
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(2)
         self.rotLimiter = wpimath.filter.SlewRateLimiter(1)
@@ -38,7 +39,6 @@ class MyRobot(commands2.TimedCommandRobot):
         # cmd = DriveForDistance(self.swerve, 50)
         cmd = HaltDrive(self.swerve)
         cmd.schedule()
-        
 
     def autonomousPeriodic(self) -> None:
         # self.driveWithJoystick(False)
@@ -53,24 +53,24 @@ class MyRobot(commands2.TimedCommandRobot):
             self.xspeedLimiter.calculate(
                 wpimath.applyDeadband(self.controller.getRawAxis(1), 0.02)
             )
-            
+
         )
         xsign = 1 if xSpeed > 0 else -1
-        xSpeed = xSpeed * xSpeed * xsign* drivetrain.kMaxSpeed
+        xSpeed = xSpeed * xSpeed * xsign * drivetrain.kMaxSpeed
 
         ySpeed = -(
             self.yspeedLimiter.calculate(
                 wpimath.applyDeadband(self.controller.getRawAxis(0), 0.02)
             )
-            
+
         )
         ysign = 1 if ySpeed > 0 else -1
-        ySpeed = ySpeed * ySpeed * ysign* drivetrain.kMaxSpeed
+        ySpeed = ySpeed * ySpeed * ysign * drivetrain.kMaxSpeed
         rot = (
             -self.rotLimiter.calculate(
                 wpimath.applyDeadband(self.controller.getRawAxis(4), 0.02)
             )
-           
+
         )
         rotsign = 1 if rot > 0 else -1
         rot = rot * rot * rotsign * drivetrain.kMaxAngularSpeed

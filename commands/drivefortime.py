@@ -3,13 +3,14 @@ from time import time
 from drivetrain import Drivetrain
 from wpilib import SmartDashboard
 
+
 class DriveForTime(commands2.CommandBase):
 
     def __init__(self, drive: Drivetrain):
         super().__init__()
         self.drive = drive
         self.power = 100
-        self.addRequirements(drive)      
+        self.addRequirements(drive)
 
     def initialize(self):
         self.start = time()
@@ -20,10 +21,9 @@ class DriveForTime(commands2.CommandBase):
         # self.power += 1
 
     def end(self, i):
-        self.drive.drive(0, 0, 0, False, 0.02)
+        self.drive.lockWheels()
         pass
 
     def isFinished(self):
         now = time()
         return (now - self.start) > 2
-    

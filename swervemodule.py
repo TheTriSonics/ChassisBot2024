@@ -20,7 +20,9 @@ kModuleMaxAngularVelocity = math.pi
 kModuleMaxAngularAcceleration = math.tau
 kWheelRadius = 4.9  # cm
 kGearRatio = 7.131
-kEncoderResolution = 2048 
+kEncoderResolution = 2048
+
+encoder_to_mech_ratio = 4.6
 
 
 class SwerveModule:
@@ -45,10 +47,7 @@ class SwerveModule:
         driveConfigurator = self.driveMotor.configurator
 
         drive_feedback = configs.FeedbackConfigs()
-        #  distance = m_driveMotor.getSelectedSensorPosition() /kDriveResolution * 2 * Math.PI * kEffectiveRadius;
-        # ratio = kEncoderResolution * math.tau * (kWheelRadius / kGearRatio) 
-        ratio = 1
-        drive_feedback.with_sensor_to_mechanism_ratio(1/ratio)
+        drive_feedback.with_sensor_to_mechanism_ratio(1)
         driveConfigurator.apply(drive_feedback)
 
         turnConfigurator = self.turningMotor.configurator
@@ -72,8 +71,12 @@ class SwerveModule:
 
         :returns: The current state of the module.
         """
-        speed = self.driveMotor.get_rotor_velocity().value * 4.6
-        rot = Rotation2d(self.turnEncoder.get_absolute_position().value * math.tau)
+        speed = (
+            self.driveMotor.get_rotor_velocity().value * encoder_to_mech_ratio
+        )
+        rot = Rotation2d(
+            self.turnEncoder.get_absolute_position().value * math.tau
+        )
         return wpimath.kinematics.SwerveModuleState(speed, rot)
 
     def getPosition(self) -> wpimath.kinematics.SwerveModulePosition:
@@ -86,14 +89,20 @@ class SwerveModule:
         pos = self.driveMotor.get_position().value
         # Now convert from rotation units to centimeters
         # distance = pos * math.tau * kWheelRadius
-        distance = pos * 4.6 # convert rotations to centimeters
-        rot = Rotation2d(self.turnEncoder.get_absolute_position().value * math.tau)
+        distance = pos * encoder_to_mech_ratio  # convert rotations to cm
+        rot = Rotation2d(
+            self.turnEncoder.get_absolute_position().value * math.tau
+        )
         return wpimath.kinematics.SwerveModulePosition(distance, rot)
 
     def lock(self):
-        self.driveMotor.set_control(DutyCycleOut(0, override_brake_dur_neutral=True))
-        self.turningMotor.set_control(DutyCycleOut(0, override_brake_dur_neutral=True))
-        
+        self.driveMotor.set_control(
+            DutyCycleOut(0, override_brake_dur_neutral=True)
+        )
+        self.turningMotor.set_control(
+            DutyCycleOut(0, override_brake_dur_neutral=True)
+        )
+
     def setDesiredState(
         self, desiredState: wpimath.kinematics.SwerveModuleState
     ) -> None:
@@ -101,11 +110,6 @@ class SwerveModule:
 
         :param desiredState: Desired state with speed and angle.
         """
-        if desiredState.speed == 0:
-            self.driveMotor.set_control(DutyCycleOut(0, override_brake_dur_neutral=True))
-            # self.turningMotor.set_control(DutyCycleOut(0, override_brake_dur_neutral=True))
-            # return
-        
         encoderRotation = Rotation2d(
             self.turnEncoder.get_absolute_position().value
         )
@@ -126,12 +130,14 @@ class SwerveModule:
             self.driveMotor.get_rotor_velocity().value, state.speed
         )
 
-        # This come 0-1, not a degree or radian, so we must make it radians
-        turn_pos = self.turnEncoder.get_absolute_position().value * 2*math.pi
+        # This come -0.5 to 0.5, so we must make it radians by scaling it up
+        turn_pos = self.turnEncoder.get_absolute_position().value * math.tau
+
         # Calculate the turning motor output from the turning PID controller.
         turnOutput = self.turningPIDController.calculate(
             turn_pos, state.angle.radians()
         )
-        if desiredState.speed != 0:
-            self.driveMotor.set_control(DutyCycleOut(driveOutput))
+
+        # Now set the motor outputs where 0 is none and 1 is full
+        self.driveMotor.set_control(DutyCycleOut(driveOutput))
         self.turningMotor.set_control(DutyCycleOut(turnOutput))

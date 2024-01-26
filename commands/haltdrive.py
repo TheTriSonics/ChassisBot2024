@@ -1,32 +1,35 @@
 import commands2
-from time import time
-from drivetrain import Drivetrain
-from wpilib import SmartDashboard
-import wpimath.kinematics
 import math
+
+from wpilib import SmartDashboard
+from drivetrain import Drivetrain
+from wpimath.geometry import Rotation2d
+from wpimath.kinematics import SwerveModuleState
+
+
 class HaltDrive(commands2.CommandBase):
 
     def __init__(self, drive: Drivetrain):
         super().__init__()
         self.drive = drive
-        self.addRequirements(drive)      
+        self.addRequirements(drive)
 
     def initialize(self):
-       pass
+        pass
 
     def execute(self):
         defaultState = [
-            wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d(-math.pi/4)),
-            wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d(math.pi/4)),
-            wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d(math.pi/4)),
-            wpimath.kinematics.SwerveModuleState(0, wpimath.geometry.Rotation2d(-math.pi/4)),
+            SwerveModuleState(0, Rotation2d(-math.pi/4)),
+            SwerveModuleState(0, Rotation2d(math.pi/4)),
+            SwerveModuleState(0, Rotation2d(math.pi/4)),
+            SwerveModuleState(0, Rotation2d(-math.pi/4)),
         ]
-        self.drive.setStates(defaultState[0], defaultState[1], defaultState[2], defaultState[3])
-        
+        self.drive.setStates(defaultState[0], defaultState[1],
+                             defaultState[2], defaultState[3])
+
     def end(self, i):
-        SmartDashboard.putString("done", "done again")
+        SmartDashboard.putString("halt", "done again")
         self.drive.lockWheels()
-        pass
 
     def isFinished(self):
         fl, fr, bl, br = self.drive.getAngles()
