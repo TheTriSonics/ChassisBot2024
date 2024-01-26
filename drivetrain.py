@@ -12,7 +12,6 @@ from phoenix6.hardware import Pigeon2
 from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d
 from wpimath.kinematics import SwerveModuleState
-from typing import Tuple
 
 # TODO: Set to a real value in centimeters per second
 kMaxSpeed = 200.0
@@ -120,7 +119,7 @@ class Drivetrain:
         self.backLeft.setDesiredState(bl)
         self.backRight.setDesiredState(br)
 
-    def getAngles(self) -> Tuple[float, float, float, float]:
+    def getAngles(self) -> tuple[float, float, float, float]:
         flAng = self.frontLeft.getState().angle.radians()
         frAng = self.frontRight.getState().angle.radians()
         blAng = self.backLeft.getState().angle.radians()
