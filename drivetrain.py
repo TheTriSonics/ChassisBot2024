@@ -104,7 +104,24 @@ class Drivetrain:
         self.frontRight.setDesiredState(swerveModuleStates[1])
         self.backLeft.setDesiredState(swerveModuleStates[2])
         self.backRight.setDesiredState(swerveModuleStates[3])
+    
+    def lockWheels(self):
+        for sm in [self.frontLeft, self.frontRight, self.backLeft, self.backRight]:
+            sm.lock()
 
+    def setStates(self,fl,fr,bl,br):
+        self.frontLeft.setDesiredState(fl)
+        self.frontRight.setDesiredState(fr)
+        self.backLeft.setDesiredState(bl)
+        self.backRight.setDesiredState(br)
+
+    def getAngles(self):
+        flAng = self.frontLeft.getState().angle.radians()
+        frAng = self.frontRight.getState().angle.radians()
+        blAng = self.backLeft.getState().angle.radians()
+        brAng = self.backRight.getState().angle.radians()
+        return flAng, frAng, blAng, brAng
+    
     def updateOdometry(self) -> None:
         """Updates the field relative position of the robot."""
         self.odometry.update(

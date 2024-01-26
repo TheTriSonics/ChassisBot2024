@@ -90,6 +90,10 @@ class SwerveModule:
         rot = Rotation2d(self.turnEncoder.get_absolute_position().value * math.tau)
         return wpimath.kinematics.SwerveModulePosition(distance, rot)
 
+    def lock(self):
+        self.driveMotor.set_control(DutyCycleOut(0, override_brake_dur_neutral=True))
+        self.turningMotor.set_control(DutyCycleOut(0, override_brake_dur_neutral=True))
+        
     def setDesiredState(
         self, desiredState: wpimath.kinematics.SwerveModuleState
     ) -> None:
@@ -97,7 +101,11 @@ class SwerveModule:
 
         :param desiredState: Desired state with speed and angle.
         """
-
+        if desiredState.speed == 0:
+            self.driveMotor.set_control(DutyCycleOut(0, override_brake_dur_neutral=True))
+            # self.turningMotor.set_control(DutyCycleOut(0, override_brake_dur_neutral=True))
+            # return
+        
         encoderRotation = Rotation2d(
             self.turnEncoder.get_absolute_position().value
         )
@@ -124,6 +132,6 @@ class SwerveModule:
         turnOutput = self.turningPIDController.calculate(
             turn_pos, state.angle.radians()
         )
-
-        self.driveMotor.set_control(DutyCycleOut(driveOutput))
+        if desiredState.speed != 0:
+            self.driveMotor.set_control(DutyCycleOut(driveOutput))
         self.turningMotor.set_control(DutyCycleOut(turnOutput))
