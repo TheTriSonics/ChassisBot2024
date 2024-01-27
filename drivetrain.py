@@ -5,12 +5,13 @@
 #
 
 import math
+import ntcore
 import wpimath.geometry
 import wpimath.kinematics
 import swervemodule
 from phoenix6.hardware import Pigeon2
 from wpilib import SmartDashboard
-from wpimath.geometry import Rotation2d
+from wpimath.geometry import Rotation2d, Pose2d
 from wpimath.kinematics import SwerveModuleState
 
 # TODO: Set to a real value in centimeters per second
@@ -23,7 +24,11 @@ class Drivetrain:
     Represents a swerve drive style drivetrain.
     """
 
-    def __init__(self) -> None:
+    def llJson(self) -> str:
+        return self.ll_json.getEntry("[]")
+
+
+    def __init__(self, gyro) -> None:
         # TODO: Set these to the right numbers in centimeters
         self.frontLeftLocation = wpimath.geometry.Translation2d(30, 30)
         self.frontRightLocation = wpimath.geometry.Translation2d(30, -30)
@@ -35,14 +40,12 @@ class Drivetrain:
         self.backLeft = swervemodule.SwerveModule(14, 24, 34, 'Back left')
         self.backRight = swervemodule.SwerveModule(13, 23, 33, 'Back right')
 
-        defaultPos = (
-            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-        )
 
-        self.gyro = Pigeon2(41, "rio")
+        self.ntinst = ntcore.NetworkTableInstance.getDefault().getTable('limelight')
+        self.ll_json = self.ntinst.getStringTopic("json")
+        self.ll_json_entry = self.ll_json.getEntry('[]')
+
+        self.gyro = gyro
 
         self.kinematics = wpimath.kinematics.SwerveDrive4Kinematics(
             self.frontLeftLocation,
@@ -62,22 +65,31 @@ class Drivetrain:
             ),
         )
 
+        self.resetOdometry()
+
+    def resetOdometry(self):
+        self.gyro.set_yaw(0)
+        defaultPos = (
+            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+        )
         self.odometry.resetPosition(
             Rotation2d(), defaultPos, wpimath.geometry.Pose2d()
         )
 
-        self.gyro.set_yaw(0)
 
     def get_heading_rotation_2d(self) -> Rotation2d:
-        return Rotation2d(math.radians(self.gyro.get_yaw().value))
+        return Rotation2d(math.radians(self.gyro.get_yaw()))
 
     def drive(
         self,
         xSpeed: float,
         ySpeed: float,
         rot: float,
-        fieldRelative: bool,
-        periodSeconds: float,
+        fieldRelative: bool = True,
+        periodSeconds: float = 0.02,
     ) -> None:
         SmartDashboard.putBoolean("Fr", fieldRelative)
         """
@@ -142,3 +154,7 @@ class Drivetrain:
         SmartDashboard.putNumber("y", pose.Y())
         SmartDashboard.putNumber("heading",
                                  self.get_heading_rotation_2d().degrees())
+        
+
+    def getPose(self) -> Pose2d:
+        return self.odometry.getPose()
