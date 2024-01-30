@@ -14,6 +14,9 @@ from wpilib import SmartDashboard
 from wpimath.geometry import Rotation2d, Pose2d
 from wpimath.kinematics import SwerveModuleState
 
+from pathplannerlib.auto import AutoBuilder
+from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
+
 # TODO: Set to a real value in centimeters per second
 kMaxSpeed = 200.0
 kMaxAngularSpeed = math.pi*4
@@ -45,6 +48,7 @@ class Drivetrain:
         self.ll_json = self.ntinst.getStringTopic("json")
         self.ll_json_entry = self.ll_json.getEntry('[]')
 
+
         self.gyro = gyro
 
         self.kinematics = wpimath.kinematics.SwerveDrive4Kinematics(
@@ -66,6 +70,40 @@ class Drivetrain:
         )
 
         self.resetOdometry()
+        
+        # Configure the AutoBuilder last
+        AutoBuilder.configureHolonomic(
+            self.getPose, # Robot pose supplier
+            self.resetOdometry, # Method to reset odometry (will be called if your auto has a starting pose)
+            self.getRobotRelativeSpeeds, # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            self.driveRobotRelative, # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
+            HolonomicPathFollowerConfig( # HolonomicPathFollowerConfig, this should likely live in your Constants class
+                PIDConstants(5.0, 0.0, 0.0), # Translation PID constants
+                PIDConstants(5.0, 0.0, 0.0), # Rotation PID constants
+                4.5, # Max module speed, in m/s
+                0.4, # Drive base radius in meters. Distance from robot center to furthest module.
+                ReplanningConfig() # Default path replanning config. See the API for the options here
+            ),
+            self.shouldFlipPath, # Supplier to control path flipping based on alliance color
+            self # Reference to this subsystem to set requirements
+        )
+
+    def getRobotRelativeSpeeds(self):
+        if self.cs is None:
+            return wpimath.kinematics.ChassisSpeeds(0,0,0)
+        return self.cs
+    
+    def driveRobotRelative(self, speeds):
+        pass
+
+    def shouldFlipPath(self):
+        return False
+    
+    def getRobotRelativeSpeeds(self):
+        pass
+
+    def driveRobotRelative(self, speeds):
+        pass
 
     def resetOdometry(self):
         self.gyro.set_yaw(0)
@@ -101,16 +139,13 @@ class Drivetrain:
         :      to the field.
         :param periodSeconds: Time
         """
-        swerveModuleStates = self.kinematics.toSwerveModuleStates(
-            wpimath.kinematics.ChassisSpeeds.discretize(
-                wpimath.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
+        if fieldRelative:
+            self.cs = wpimath.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeed, ySpeed, rot, self.get_heading_rotation_2d(),
                 )
-                if fieldRelative
-                else wpimath.kinematics.ChassisSpeeds(xSpeed, ySpeed, rot),
-                periodSeconds,
-            )
-        )
+        else:
+            self.cs = wpimath.kinematics.ChassisSpeeds(xSpeed, ySpeed, rot)
+        swerveModuleStates = self.kinematics.toSwerveModuleStates(self.cs, wpimath.geometry.Translation2d(0, 0))
         wpimath.kinematics.SwerveDrive4Kinematics.desaturateWheelSpeeds(
             swerveModuleStates, kMaxSpeed
         )
