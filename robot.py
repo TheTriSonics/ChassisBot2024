@@ -32,6 +32,7 @@ class MyRobot(commands2.TimedCommandRobot):
         """Robot initialization function"""
         # self.controller = wpilib.XboxController(0)
         self.controller = wpilib.Joystick(0)
+        
         self.gyro = Gyro()
         self.swerve = drivetrain.Drivetrain(self.gyro)
 
@@ -83,10 +84,14 @@ class MyRobot(commands2.TimedCommandRobot):
         SmartDashboard.putNumber("yaw", self.gyro.get_yaw())
 
     def teleopPeriodic(self) -> None:
+        if self.controller.getRawButtonPressed(2):
+            self.swerve.toggleFieldRelative()
+        
         self.driveWithJoystick(True)
         self.swerve.updateOdometry()
         SmartDashboard.putNumber("yaw", self.gyro.get_yaw())
         currx, curry = self.getVisionXY()
+        
         if currx is not None and curry is not None:
             SmartDashboard.putNumber('vx', currx)
             SmartDashboard.putNumber('vy', curry)
@@ -173,4 +178,4 @@ class MyRobot(commands2.TimedCommandRobot):
         SmartDashboard.putNumber('xspeed', xSpeed)
         SmartDashboard.putNumber('yspeed', ySpeed)
         SmartDashboard.putNumber('rot', rot)
-        self.swerve.drive(xSpeed, ySpeed, rot, False, self.getPeriod())
+        self.swerve.drive(xSpeed, ySpeed, rot, self.getPeriod())

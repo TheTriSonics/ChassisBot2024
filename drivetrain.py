@@ -48,6 +48,7 @@ class Drivetrain:
         self.ll_json = self.ntinst.getStringTopic("json")
         self.ll_json_entry = self.ll_json.getEntry('[]')
 
+        self.fieldRelative = False    
 
         self.gyro = gyro
 
@@ -75,7 +76,7 @@ class Drivetrain:
         AutoBuilder.configureHolonomic(
             self.getPose, # Robot pose supplier
             self.resetOdometry, # Method to reset odometry (will be called if your auto has a starting pose)
-            self.getRobotRelativeSpeeds, # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            self.getSpeeds, # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             self.driveRobotRelative, # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( # HolonomicPathFollowerConfig, this should likely live in your Constants class
                 PIDConstants(5.0, 0.0, 0.0), # Translation PID constants
@@ -88,22 +89,22 @@ class Drivetrain:
             self # Reference to this subsystem to set requirements
         )
 
-    def getRobotRelativeSpeeds(self):
-        if self.cs is None:
-            return wpimath.kinematics.ChassisSpeeds(0,0,0)
+    def getSpeeds(self):
+        # if self.fieldRelative:
+        #     self.cs.fromFieldRelativeSpeeds(speeds.vx, speeds.vy, speeds.omega, self.get_heading_rotation_2d())
+        # else:
+        #     self.cs = wpimath.kinematics.ChassisSpeeds(xSpeed, ySpeed, rot)
+        # if self.cs is None:
+        #     return wpimath.kinematics.ChassisSpeeds(0,0,0)
         return self.cs
     
     def driveRobotRelative(self, speeds):
+        self.fieldRelative = True
+        self.drive(speeds.vx, speeds.vy, speeds.oemga)
         pass
 
     def shouldFlipPath(self):
         return False
-    
-    def getRobotRelativeSpeeds(self):
-        pass
-
-    def driveRobotRelative(self, speeds):
-        pass
 
     def resetOdometry(self):
         self.gyro.set_yaw(0)
@@ -121,15 +122,18 @@ class Drivetrain:
     def get_heading_rotation_2d(self) -> Rotation2d:
         return Rotation2d(math.radians(self.gyro.get_yaw()))
 
+
+    def toggleFieldRelative(self):
+        self.fieldRelative = not self.fieldRelative
+
     def drive(
         self,
         xSpeed: float,
         ySpeed: float,
         rot: float,
-        fieldRelative: bool = True,
         periodSeconds: float = 0.02,
     ) -> None:
-        SmartDashboard.putBoolean("Fr", fieldRelative)
+        SmartDashboard.putBoolean("Fr", self.fieldRelative)
         """
         Method to drive the robot using joystick info.
         :param xSpeed: Speed of the robot in the x direction (forward).
@@ -139,7 +143,7 @@ class Drivetrain:
         :      to the field.
         :param periodSeconds: Time
         """
-        if fieldRelative:
+        if self.fieldRelative:
             self.cs = wpimath.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeed, ySpeed, rot, self.get_heading_rotation_2d(),
                 )
