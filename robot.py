@@ -24,6 +24,7 @@ from commands.haltdrive import HaltDrive
 from commands.drivetopoint import DriveToPoint
 from subsystems.gyro import Gyro
 from pathplannerlib.path import PathPlannerPath
+from pathplannerlib.auto import PathPlannerAuto
 from pathplannerlib.commands import FollowPathHolonomic
 from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
  
@@ -41,6 +42,7 @@ class MyRobot(commands2.TimedCommandRobot):
         self.yspeedLimiter = wpimath.filter.SlewRateLimiter(2)
         self.rotLimiter = wpimath.filter.SlewRateLimiter(1)
 
+    '''
     def followPathCommand(self, pathName: str):
         path = PathPlannerPath.fromPathFile(pathName)
         return FollowPathHolonomic(
@@ -58,12 +60,13 @@ class MyRobot(commands2.TimedCommandRobot):
             self.swerve.shouldFlipPath, # Supplier to control path flipping based on alliance color
             self # Reference to this subsystem to set requirements
         )
+        '''
 
     def autonomousInit(self):
         # cmd = DriveForDistance(self.swerve, 50)
         # cmd = HaltDrive(self.swerve)
         self.swerve.resetOdometry()
-        cmd = self.followPathCommand('GetNote')
+        cmd = PathPlannerAuto("happy")
         cmd.schedule()
         """
         drive1 = DriveToPoint(self.swerve, self.gyro, 200, 100, 180)
@@ -74,9 +77,6 @@ class MyRobot(commands2.TimedCommandRobot):
         scg.schedule()
         """
         pass
-
-    def autonomousStart(self):
-        self.path_follower.start()
 
     def autonomousPeriodic(self) -> None:
         # self.driveWithJoystick(False)

@@ -1,0 +1,43 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 0.1626518568352451,
+      "y": 7.044463818657367
+    },
+    "rotation": 3.6786916051560947
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "GetfirstNote"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "intakenote"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "speakershooting"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "shoot note"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}

@@ -10,7 +10,7 @@ import wpimath.geometry
 import wpimath.kinematics
 import swervemodule
 from phoenix6.hardware import Pigeon2
-from wpilib import SmartDashboard
+from wpilib import SmartDashboard, DriverStation
 from wpimath.geometry import Rotation2d, Pose2d
 from wpimath.kinematics import SwerveModuleState
 
@@ -52,6 +52,8 @@ class Drivetrain:
 
         self.gyro = gyro
 
+        self.cs = None
+
         self.kinematics = wpimath.kinematics.SwerveDrive4Kinematics(
             self.frontLeftLocation,
             self.frontRightLocation,
@@ -72,6 +74,8 @@ class Drivetrain:
 
         self.resetOdometry()
         
+        p, i, d = .3, 0.045, 0
+
         # Configure the AutoBuilder last
         AutoBuilder.configureHolonomic(
             self.getPose, # Robot pose supplier
@@ -79,10 +83,10 @@ class Drivetrain:
             self.getSpeeds, # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             self.driveRobotRelative, # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( # HolonomicPathFollowerConfig, this should likely live in your Constants class
-                PIDConstants(5.0, 0.0, 0.0), # Translation PID constants
-                PIDConstants(5.0, 0.0, 0.0), # Rotation PID constants
-                4.5, # Max module speed, in m/s
-                0.4, # Drive base radius in meters. Distance from robot center to furthest module.
+                PIDConstants(p, i, d), # Translation PID constants
+                PIDConstants(0.01, 0.0, 0.0), # Rotation PID constants
+                100, # Max module speed, in mm/s?
+                0.431, # Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() # Default path replanning config. See the API for the options here
             ),
             self.shouldFlipPath, # Supplier to control path flipping based on alliance color
@@ -94,30 +98,37 @@ class Drivetrain:
         #     self.cs.fromFieldRelativeSpeeds(speeds.vx, speeds.vy, speeds.omega, self.get_heading_rotation_2d())
         # else:
         #     self.cs = wpimath.kinematics.ChassisSpeeds(xSpeed, ySpeed, rot)
-        # if self.cs is None:
-        #     return wpimath.kinematics.ChassisSpeeds(0,0,0)
+        if self.cs is None:
+            return wpimath.kinematics.ChassisSpeeds(0,0,0)
         return self.cs
     
     def driveRobotRelative(self, speeds):
-        self.fieldRelative = True
-        self.drive(speeds.vx, speeds.vy, speeds.oemga)
+        self.fieldRelative = False
+        self.drive(speeds.vx, speeds.vy, speeds.omega)
+        SmartDashboard.putNumber("vx", speeds.vx)
+        SmartDashboard.putNumber("vy", speeds.vy)
         pass
 
     def shouldFlipPath(self):
-        return False
+        return DriverStation.getAlliance() == DriverStation.Alliance.kRed
 
-    def resetOdometry(self):
-        self.gyro.set_yaw(0)
-        defaultPos = (
-            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-            wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-        )
-        self.odometry.resetPosition(
-            Rotation2d(), defaultPos, wpimath.geometry.Pose2d()
-        )
-
+    def resetOdometry(self, pose: Pose2d = None):
+        if pose == None:
+            self.gyro.set_yaw(0)
+            defaultPos = (
+                wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+                wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+                wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+                wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+            )
+            self.odometry.resetPosition(
+                Rotation2d(), defaultPos, wpimath.geometry.Pose2d()
+            )
+        else:
+            self.gyro.set_yaw(pose.rotation().degrees())
+            self.odometry.resetPosition(
+                pose.rotation(), modulePositions = [self.frontLeft.getPosition(),self.frontRight.getPosition(),self.backLeft.getPosition(),self.backRight.getPosition()], pose = pose
+            )
 
     def get_heading_rotation_2d(self) -> Rotation2d:
         return Rotation2d(math.radians(self.gyro.get_yaw()))
