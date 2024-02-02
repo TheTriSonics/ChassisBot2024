@@ -18,11 +18,11 @@ from wpilib import SmartDashboard
 
 kModuleMaxAngularVelocity = math.pi
 kModuleMaxAngularAcceleration = math.tau
-kWheelRadius = 4.9  # cm
+kWheelRadius = 4.9  / 100 # m
 kGearRatio = 7.131
 kEncoderResolution = 2048
 
-encoder_to_mech_ratio = 4.6
+encoder_to_mech_ratio = 4.6 / 100.0
 
 
 class SwerveModule:
@@ -58,7 +58,7 @@ class SwerveModule:
 
         self.turnEncoder = CANcoder(canCoderChannel)
 
-        self.drivePIDController = PIDController(0.003, 0, 0)
+        self.drivePIDController = PIDController(0.1, 0, 0)
         self.turningPIDController = PIDController(0.25, 0, 0)
 
         # Limit the PID Controller's input range between -pi and pi and
@@ -74,6 +74,7 @@ class SwerveModule:
         speed = (
             self.driveMotor.get_rotor_velocity().value * encoder_to_mech_ratio
         )
+        SmartDashboard.putNumber(f'{self.name} speed', speed)
         rot = Rotation2d(
             self.turnEncoder.get_absolute_position().value * math.tau
         )
@@ -127,7 +128,7 @@ class SwerveModule:
 
         # Calculate the drive output from the drive PID controller.
         driveOutput = self.drivePIDController.calculate(
-            self.driveMotor.get_rotor_velocity().value, state.speed
+            self.driveMotor.get_rotor_velocity().value * encoder_to_mech_ratio, state.speed
         )
 
         # This come -0.5 to 0.5, so we must make it radians by scaling it up

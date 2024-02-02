@@ -18,8 +18,10 @@ from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 
 # TODO: Set to a real value in centimeters per second
-kMaxSpeed = 200.0
-kMaxAngularSpeed = math.pi*4
+kMaxSpeed = 4 # m/s
+kMaxAngularSpeed = math.pi*4 
+
+swerve_offset = 30 / 100  # cm converted to meters
 
 
 class Drivetrain:
@@ -30,19 +32,17 @@ class Drivetrain:
     def llJson(self) -> str:
         return self.ll_json.getEntry("[]")
 
-
     def __init__(self, gyro) -> None:
         # TODO: Set these to the right numbers in centimeters
-        self.frontLeftLocation = wpimath.geometry.Translation2d(30, 30)
-        self.frontRightLocation = wpimath.geometry.Translation2d(30, -30)
-        self.backLeftLocation = wpimath.geometry.Translation2d(-30, 30)
-        self.backRightLocation = wpimath.geometry.Translation2d(-30, -30)
+        self.frontLeftLocation = wpimath.geometry.Translation2d(swerve_offset, swerve_offset)
+        self.frontRightLocation = wpimath.geometry.Translation2d(swerve_offset, -swerve_offset)
+        self.backLeftLocation = wpimath.geometry.Translation2d(-swerve_offset, swerve_offset)
+        self.backRightLocation = wpimath.geometry.Translation2d(-swerve_offset, -swerve_offset)
 
         self.frontLeft = swervemodule.SwerveModule(12, 22, 32, 'Front left')
         self.frontRight = swervemodule.SwerveModule(11, 21, 31, 'Front right')
         self.backLeft = swervemodule.SwerveModule(14, 24, 34, 'Back left')
         self.backRight = swervemodule.SwerveModule(13, 23, 33, 'Back right')
-
 
         self.ntinst = ntcore.NetworkTableInstance.getDefault().getTable('limelight')
         self.ll_json = self.ntinst.getStringTopic("json")
@@ -73,8 +73,8 @@ class Drivetrain:
         )
 
         self.resetOdometry()
-        
-        p, i, d = .3, 0.045, 0
+
+        p, i, d = 25, 0.045, 0
 
         # Configure the AutoBuilder last
         AutoBuilder.configureHolonomic(
@@ -84,8 +84,8 @@ class Drivetrain:
             self.driveRobotRelative, # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( # HolonomicPathFollowerConfig, this should likely live in your Constants class
                 PIDConstants(p, i, d), # Translation PID constants
-                PIDConstants(0.01, 0.0, 0.0), # Rotation PID constants
-                100, # Max module speed, in mm/s?
+                PIDConstants(0.25, 0.0, 0.0), # Rotation PID constants
+                kMaxSpeed, # Max module speed, in m/s.
                 0.431, # Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() # Default path replanning config. See the API for the options here
             ),
@@ -101,12 +101,21 @@ class Drivetrain:
         if self.cs is None:
             return wpimath.kinematics.ChassisSpeeds(0,0,0)
         return self.cs
-    
+
     def driveRobotRelative(self, speeds):
         self.fieldRelative = False
-        self.drive(speeds.vx, speeds.vy, speeds.omega)
+        # self.drive(speeds.vx, speeds.vy, speeds.omega)
         SmartDashboard.putNumber("vx", speeds.vx)
         SmartDashboard.putNumber("vy", speeds.vy)
+        self.cs = speeds
+        swerveModuleStates = self.kinematics.toSwerveModuleStates(speeds, wpimath.geometry.Translation2d(0, 0))
+        wpimath.kinematics.SwerveDrive4Kinematics.desaturateWheelSpeeds(
+            swerveModuleStates, kMaxSpeed
+        )
+        self.frontLeft.setDesiredState(swerveModuleStates[0])
+        self.frontRight.setDesiredState(swerveModuleStates[1])
+        self.backLeft.setDesiredState(swerveModuleStates[2])
+        self.backRight.setDesiredState(swerveModuleStates[3])
         pass
 
     def shouldFlipPath(self):
@@ -127,12 +136,18 @@ class Drivetrain:
         else:
             self.gyro.set_yaw(pose.rotation().degrees())
             self.odometry.resetPosition(
-                pose.rotation(), modulePositions = [self.frontLeft.getPosition(),self.frontRight.getPosition(),self.backLeft.getPosition(),self.backRight.getPosition()], pose = pose
+                pose.rotation(),
+                modulePositions=[
+                    self.frontLeft.getPosition(),
+                    self.frontRight.getPosition(),
+                    self.backLeft.getPosition(),
+                    self.backRight.getPosition(),
+                ],
+                pose=pose,
             )
 
     def get_heading_rotation_2d(self) -> Rotation2d:
         return Rotation2d(math.radians(self.gyro.get_yaw()))
-
 
     def toggleFieldRelative(self):
         self.fieldRelative = not self.fieldRelative
@@ -204,7 +219,6 @@ class Drivetrain:
         SmartDashboard.putNumber("y", pose.Y())
         SmartDashboard.putNumber("heading",
                                  self.get_heading_rotation_2d().degrees())
-        
 
     def getPose(self) -> Pose2d:
         return self.odometry.getPose()

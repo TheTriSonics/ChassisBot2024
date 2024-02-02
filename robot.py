@@ -67,7 +67,9 @@ class MyRobot(commands2.TimedCommandRobot):
         # cmd = HaltDrive(self.swerve)
         self.swerve.resetOdometry()
         cmd = PathPlannerAuto("happy")
-        cmd.schedule()
+        haltcmd = HaltDrive(self.swerve)
+        scg = commands2.SequentialCommandGroup([cmd, haltcmd])
+        scg.schedule()
         """
         drive1 = DriveToPoint(self.swerve, self.gyro, 200, 100, 180)
         halt1 = HaltDrive(self.swerve)
@@ -87,7 +89,7 @@ class MyRobot(commands2.TimedCommandRobot):
         if self.controller.getRawButtonPressed(2):
             self.swerve.toggleFieldRelative()
         
-        self.driveWithJoystick(True)
+        self.driveWithJoystick(False)
         self.swerve.updateOdometry()
         SmartDashboard.putNumber("yaw", self.gyro.get_yaw())
         currx, curry = self.getVisionXY()
@@ -114,21 +116,6 @@ class MyRobot(commands2.TimedCommandRobot):
                     currx = totalx / targets
                     curry = totaly / targets
         return currx, curry
-
-    def driveWithJoystick(self, fieldRelative: bool) -> None:
-        xSpeed = -(
-            self.xspeedLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getRawAxis(1), 0.02)
-            )
-        )
-        xsign = 1 if xSpeed > 0 else -1
-        xSpeed = xSpeed * xSpeed * xsign * drivetrain.kMaxSpeed
-
-        ySpeed = -(
-            self.yspeedLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getRawAxis(0), 0.02)
-            )
-        )
 
     def getVisionXY(self):
         data = self.swerve.ll_json_entry.get()
