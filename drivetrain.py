@@ -18,8 +18,8 @@ from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 
 # TODO: Set to a real value in centimeters per second
-kMaxSpeed = 4 # m/s
-kMaxAngularSpeed = math.pi*4 
+kMaxSpeed = 3.5 # m/s
+kMaxAngularSpeed = math.pi*4.5 
 
 swerve_offset = 30 / 100  # cm converted to meters
 
@@ -84,7 +84,7 @@ class Drivetrain:
             self.driveRobotRelative, # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( # HolonomicPathFollowerConfig, this should likely live in your Constants class
                 PIDConstants(p, i, d), # Translation PID constants
-                PIDConstants(0.25, 0.0, 0.0), # Rotation PID constants
+                PIDConstants(15.0, 0.0, 0.0), # Rotation PID constants
                 kMaxSpeed, # Max module speed, in m/s.
                 0.431, # Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() # Default path replanning config. See the API for the options here
@@ -94,12 +94,10 @@ class Drivetrain:
         )
 
     def getSpeeds(self):
-        # if self.fieldRelative:
-        #     self.cs.fromFieldRelativeSpeeds(speeds.vx, speeds.vy, speeds.omega, self.get_heading_rotation_2d())
-        # else:
-        #     self.cs = wpimath.kinematics.ChassisSpeeds(xSpeed, ySpeed, rot)
         if self.cs is None:
             return wpimath.kinematics.ChassisSpeeds(0,0,0)
+        SmartDashboard.putNumber("csvx", self.cs.vx)
+        SmartDashboard.putNumber("csvy", self.cs.vy)
         return self.cs
 
     def driveRobotRelative(self, speeds):
@@ -107,6 +105,7 @@ class Drivetrain:
         # self.drive(speeds.vx, speeds.vy, speeds.omega)
         SmartDashboard.putNumber("vx", speeds.vx)
         SmartDashboard.putNumber("vy", speeds.vy)
+        SmartDashboard.putNumber("omega", speeds.omega)
         self.cs = speeds
         swerveModuleStates = self.kinematics.toSwerveModuleStates(speeds, wpimath.geometry.Translation2d(0, 0))
         wpimath.kinematics.SwerveDrive4Kinematics.desaturateWheelSpeeds(

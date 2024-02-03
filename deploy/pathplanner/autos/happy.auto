@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 0.1626518568352451,
-      "y": 7.044463818657367
+      "x": 8.233277727816716,
+      "y": 2.533048669700944
     },
-    "rotation": 0
+    "rotation": -90.0
   },
   "command": {
     "type": "sequential",
@@ -14,7 +14,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "GetfirstNote"
+            "pathName": "jet"
           }
         }
       ]

@@ -41,7 +41,7 @@ class DriveToPoint(CommandBase):
         deltay = curry - self.y
         total_distance = sqrt(deltax*deltax + deltay*deltay)
         SmartDashboard.putNumber('dtp err', total_distance)
-        if total_distance < 5:
+        if total_distance < 5/100:
             return True
         return False
 
