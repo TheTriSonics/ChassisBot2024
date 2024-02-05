@@ -18,11 +18,11 @@ from wpilib import SmartDashboard
 
 kModuleMaxAngularVelocity = math.pi
 kModuleMaxAngularAcceleration = math.tau
-kWheelRadius = 4.9  / 100 # m
+kWheelRadius = 0.049 # m
 kGearRatio = 7.131
 kEncoderResolution = 2048
 
-encoder_to_mech_ratio = 4.6 / 100.0
+encoder_to_mech_ratio = 0.046
 
 
 class SwerveModule:

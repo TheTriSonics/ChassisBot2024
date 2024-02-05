@@ -168,3 +168,6 @@ class MyRobot(commands2.TimedCommandRobot):
         SmartDashboard.putNumber('yspeed', ySpeed)
         SmartDashboard.putNumber('rot', rot)
         self.swerve.drive(xSpeed, ySpeed, rot, self.getPeriod())
+
+    def disabledPeriodic(self) -> None:
+        SmartDashboard.putNumber("FL encoder", self.swerve.frontLeft.driveMotor.get_position().value)

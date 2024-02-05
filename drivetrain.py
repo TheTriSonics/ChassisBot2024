@@ -103,14 +103,16 @@ class Drivetrain:
     def driveRobotRelative(self, speeds):
         self.fieldRelative = False
         # self.drive(speeds.vx, speeds.vy, speeds.omega)
-        SmartDashboard.putNumber("vx", speeds.vx)
-        SmartDashboard.putNumber("vy", speeds.vy)
-        SmartDashboard.putNumber("omega", speeds.omega)
+        # SmartDashboard.putNumber("vx", speeds.vx)
+        # SmartDashboard.putNumber("vy", speeds.vy)
+        # SmartDashboard.putNumber("omega", speeds.omega)
         self.cs = speeds
         swerveModuleStates = self.kinematics.toSwerveModuleStates(speeds, wpimath.geometry.Translation2d(0, 0))
+        
         wpimath.kinematics.SwerveDrive4Kinematics.desaturateWheelSpeeds(
             swerveModuleStates, kMaxSpeed
         )
+
         self.frontLeft.setDesiredState(swerveModuleStates[0])
         self.frontRight.setDesiredState(swerveModuleStates[1])
         self.backLeft.setDesiredState(swerveModuleStates[2])
