@@ -16,13 +16,13 @@ from phoenix6 import configs, signals
 from wpilib import SmartDashboard
 
 
-kModuleMaxAngularVelocity = math.pi
+kModuleMaxAngularVelocity = math.pi*10
 kModuleMaxAngularAcceleration = math.tau
 kWheelRadius = 0.049 # m
 kGearRatio = 7.131
 kEncoderResolution = 2048
 
-encoder_to_mech_ratio = 0.046
+encoder_to_mech_ratio = 0.043
 
 
 class SwerveModule:
@@ -72,7 +72,7 @@ class SwerveModule:
         :returns: The current state of the module.
         """
         speed = (
-            self.driveMotor.get_rotor_velocity().value * encoder_to_mech_ratio
+            self.driveMotor.get_velocity().value * encoder_to_mech_ratio
         )
         SmartDashboard.putNumber(f'{self.name} speed', speed)
         rot = Rotation2d(
@@ -126,9 +126,12 @@ class SwerveModule:
         # 0 and 90 degrees will scale the speed accordingly.
         state.speed *= (state.angle - encoderRotation).cos()
 
+        SmartDashboard.putNumber("state speed", state.speed)
+        SmartDashboard.putNumber("Drive motor velocity", self.driveMotor.get_velocity().value * encoder_to_mech_ratio)
+
         # Calculate the drive output from the drive PID controller.
         driveOutput = self.drivePIDController.calculate(
-            self.driveMotor.get_rotor_velocity().value * encoder_to_mech_ratio, state.speed
+            self.driveMotor.get_velocity().value * encoder_to_mech_ratio, state.speed
         )
 
         # This come -0.5 to 0.5, so we must make it radians by scaling it up

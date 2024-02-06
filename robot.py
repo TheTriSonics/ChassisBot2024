@@ -67,6 +67,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # cmd = DriveForDistance(self.swerve, 50)
         # cmd = HaltDrive(self.swerve)
         self.swerve.resetOdometry()
+        self.gyro.set_yaw(-90)
         cmd = PathPlannerAuto("happy")
         # cmd = DriveToPoint(self.swerve, self.gyro, 2, 0, 0)
         haltcmd = HaltDrive(self.swerve)

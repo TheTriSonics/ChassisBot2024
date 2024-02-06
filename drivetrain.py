@@ -19,7 +19,7 @@ from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig,
 
 # TODO: Set to a real value in centimeters per second
 kMaxSpeed = 3.5 # m/s
-kMaxAngularSpeed = math.pi*4.5 
+kMaxAngularSpeed = math.pi * 4
 
 swerve_offset = 30 / 100  # cm converted to meters
 
@@ -74,7 +74,7 @@ class Drivetrain:
 
         self.resetOdometry()
 
-        p, i, d = 25, 0.045, 0
+        p, i, d = 5, 0.045, 0
 
         # Configure the AutoBuilder last
         AutoBuilder.configureHolonomic(

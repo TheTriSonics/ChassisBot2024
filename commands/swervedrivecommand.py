@@ -1,8 +1,7 @@
 
 import commands2
 from wpimath.filter import SlewRateLimiter
-import constants
-import subsystems.drivetrain as dt
+import drivetrain as dt
 from wpilib import Joystick, SmartDashboard
 from functools import wraps
 
@@ -56,11 +55,11 @@ class SwerveDriveCommand(commands2.CommandBase):
         return self.controller.getRawAxis(4)
 
     def execute(self) -> None:
-        xspeed = self.xspeed_limiter.calculate(self.get_driver_x())*constants.MAX_SPEED
-        yspeed = self.yspeed_limiter.calculate(self.get_driver_y())*constants.MAX_SPEED
+        xspeed = self.xspeed_limiter.calculate(self.get_driver_x())*dt.kMaxSpeed
+        yspeed = self.yspeed_limiter.calculate(self.get_driver_y())*dt.kMaxSpeed
         rot = self.rot_limiter.calculate(
             self.get_driver_rot()
-        )*constants.MAX_ANGULAR_SPEED*-0.5
+        )*dt.kMaxAngularSpeed
         SmartDashboard.putNumber("X Speed", xspeed)
         SmartDashboard.putNumber("y Speed", yspeed)
         SmartDashboard.putNumber("Rot", rot)
