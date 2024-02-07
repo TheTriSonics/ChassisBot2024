@@ -18,7 +18,7 @@ from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 
 # TODO: Set to a real value in centimeters per second
-kMaxSpeed = 3.5 # m/s
+kMaxSpeed = 4.5 # m/s
 kMaxAngularSpeed = math.pi * 4
 
 swerve_offset = 30 / 100  # cm converted to meters
@@ -74,7 +74,7 @@ class Drivetrain:
 
         self.resetOdometry()
 
-        p, i, d = 5, 0.045, 0
+        p, i, d = 15, 0.045, 0
 
         # Configure the AutoBuilder last
         AutoBuilder.configureHolonomic(
@@ -94,10 +94,12 @@ class Drivetrain:
         )
 
     def getSpeeds(self):
-        if self.cs is None:
-            return wpimath.kinematics.ChassisSpeeds(0,0,0)
+        self.cs = self.kinematics.toChassisSpeeds([self.frontLeft.getState(), self.frontRight.getState(), self.backLeft.getState(), self.backRight.getState()])
+        # if self.cs is None:
+        #     return wpimath.kinematics.ChassisSpeeds(0,0,0)
         SmartDashboard.putNumber("csvx", self.cs.vx)
         SmartDashboard.putNumber("csvy", self.cs.vy)
+        
         return self.cs
 
     def driveRobotRelative(self, speeds):
@@ -106,7 +108,7 @@ class Drivetrain:
         # SmartDashboard.putNumber("vx", speeds.vx)
         # SmartDashboard.putNumber("vy", speeds.vy)
         # SmartDashboard.putNumber("omega", speeds.omega)
-        self.cs = speeds
+        # self.cs = speeds
         swerveModuleStates = self.kinematics.toSwerveModuleStates(speeds, wpimath.geometry.Translation2d(0, 0))
         
         wpimath.kinematics.SwerveDrive4Kinematics.desaturateWheelSpeeds(

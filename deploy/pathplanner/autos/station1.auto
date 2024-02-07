@@ -1,0 +1,43 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.3737079726411703,
+      "y": 7.275581398009644
+    },
+    "rotation": -90.0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "path",
+          "data": {
+            "pathName": "StartToAmp"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "AmptoNote1"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note1to4"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note4toShoot"
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}
