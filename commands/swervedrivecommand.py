@@ -30,7 +30,7 @@ def deadband(val):
 class SwerveDriveCommand(commands2.CommandBase):
     xspeed_limiter: SlewRateLimiter = SlewRateLimiter(1.5)
     yspeed_limiter: SlewRateLimiter = SlewRateLimiter(1.5)
-    rot_limiter: SlewRateLimiter = SlewRateLimiter(3)
+    rot_limiter: SlewRateLimiter = SlewRateLimiter(8)
 
     def __init__(self, drive, controller: Joystick):
         super().__init__()

@@ -1,0 +1,50 @@
+{
+  "version": 1.0,
+  "startingPose": {
+    "position": {
+      "x": 1.4673982506233287,
+      "y": 2.6724675166880507
+    },
+    "rotation": 0.0
+  },
+  "command": {
+    "type": "sequential",
+    "data": {
+      "commands": [
+        {
+          "type": "sequential",
+          "data": {
+            "commands": [
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "ShootToNote8"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Note8ToShoot4"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Shoot4ToNote7"
+                }
+              },
+              {
+                "type": "path",
+                "data": {
+                  "pathName": "Note7ToShoot4"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    }
+  },
+  "folder": null,
+  "choreoAuto": false
+}

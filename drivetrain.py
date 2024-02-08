@@ -18,7 +18,7 @@ from pathplannerlib.auto import AutoBuilder
 from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 
 # TODO: Set to a real value in centimeters per second
-kMaxSpeed = 4.5 # m/s
+kMaxSpeed = 4.8 # m/s
 kMaxAngularSpeed = math.pi * 4
 
 swerve_offset = 30 / 100  # cm converted to meters
@@ -39,10 +39,10 @@ class Drivetrain:
         self.backLeftLocation = wpimath.geometry.Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = wpimath.geometry.Translation2d(-swerve_offset, -swerve_offset)
 
-        self.frontLeft = swervemodule.SwerveModule(12, 22, 32, 'Front left')
-        self.frontRight = swervemodule.SwerveModule(11, 21, 31, 'Front right')
-        self.backLeft = swervemodule.SwerveModule(14, 24, 34, 'Back left')
-        self.backRight = swervemodule.SwerveModule(13, 23, 33, 'Back right')
+        self.frontLeft = swervemodule.SwerveModule(12, 22, 32, False, 'Front left')
+        self.frontRight = swervemodule.SwerveModule(11, 21, 31, True, 'Front right')
+        self.backLeft = swervemodule.SwerveModule(14, 24, 34, False, 'Back left')
+        self.backRight = swervemodule.SwerveModule(13, 23, 33, True, 'Back right')
 
         self.ntinst = ntcore.NetworkTableInstance.getDefault().getTable('limelight')
         self.ll_json = self.ntinst.getStringTopic("json")
@@ -74,8 +74,6 @@ class Drivetrain:
 
         self.resetOdometry()
 
-        p, i, d = 15, 0.045, 0
-
         # Configure the AutoBuilder last
         AutoBuilder.configureHolonomic(
             self.getPose, # Robot pose supplier
@@ -83,8 +81,8 @@ class Drivetrain:
             self.getSpeeds, # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             self.driveRobotRelative, # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( # HolonomicPathFollowerConfig, this should likely live in your Constants class
-                PIDConstants(p, i, d), # Translation PID constants
-                PIDConstants(15.0, 0.0, 0.0), # Rotation PID constants
+                PIDConstants(1.9, 0.0, 0.0), # Translation PID constants
+                PIDConstants(1.5, 0.0, 0.0), # Rotation PID constants
                 kMaxSpeed, # Max module speed, in m/s.
                 0.431, # Drive base radius in meters. Distance from robot center to furthest module.
                 ReplanningConfig() # Default path replanning config. See the API for the options here

@@ -11,17 +11,17 @@ import wpimath.trajectory
 from wpimath.geometry import Rotation2d
 from wpimath.controller import PIDController
 from phoenix6.hardware import TalonFX, CANcoder
-from phoenix6.controls import DutyCycleOut
+from phoenix6.controls import DutyCycleOut, VelocityDutyCycle
 from phoenix6 import configs, signals
 from wpilib import SmartDashboard
 
 
 kModuleMaxAngularVelocity = math.pi*10
 kModuleMaxAngularAcceleration = math.tau
-# kWheelRadius = 0.049 # m
+kWheelRadius = 0.0508 # m
 # kGearRatio = 7.131
 
-encoder_to_mech_ratio = 0.0458
+# encoder_to_mech_ratio = 
 
 
 class SwerveModule:
@@ -30,6 +30,7 @@ class SwerveModule:
         driveMotorChannel: int,
         turningMotorChannel: int,
         canCoderChannel: int,
+        inverted: bool,
         name: str,
     ) -> None:
         self.name = name
@@ -45,9 +46,21 @@ class SwerveModule:
 
         driveConfigurator = self.driveMotor.configurator
 
+        drive_Output = configs.MotorOutputConfigs()
+        if inverted:
+            drive_Output.inverted = signals.InvertedValue.COUNTER_CLOCKWISE_POSITIVE
+        else:
+            drive_Output.inverted = signals.InvertedValue.CLOCKWISE_POSITIVE
+
         drive_feedback = configs.FeedbackConfigs()
-        drive_feedback.with_sensor_to_mechanism_ratio(1)
+        drive_feedback.with_sensor_to_mechanism_ratio(7.131)
         driveConfigurator.apply(drive_feedback)
+
+        drive_PID = configs.Slot0Configs()
+        drive_PID.k_p = 0.16
+        drive_PID.k_s = 0.045
+        drive_PID.k_v = 0.09
+        driveConfigurator.apply(drive_PID)
 
         turnConfigurator = self.turningMotor.configurator
         turn_motor_configs = configs.MotorOutputConfigs()
@@ -57,7 +70,7 @@ class SwerveModule:
 
         self.turnEncoder = CANcoder(canCoderChannel)
 
-        self.drivePIDController = PIDController(0.1, 0, 0)
+        self.drivePIDController = PIDController(0.24, 0, 0)
         self.turningPIDController = PIDController(0.25, 0, 0)
 
         # Limit the PID Controller's input range between -pi and pi and
@@ -71,9 +84,9 @@ class SwerveModule:
         :returns: The current state of the module.
         """
         speed = (
-            self.driveMotor.get_velocity().value * encoder_to_mech_ratio
+            self.driveMotor.get_velocity().value * (2 * math.pi * kWheelRadius)
         )
-        SmartDashboard.putNumber(f'{self.name} speed', speed)
+        # SmartDashboard.putNumber(f'{self.name} speed', speed)
         rot = Rotation2d(
             self.turnEncoder.get_absolute_position().value * math.tau
         )
@@ -89,7 +102,7 @@ class SwerveModule:
         pos = self.driveMotor.get_position().value
         # Now convert from rotation units to centimeters
         # distance = pos * math.tau * kWheelRadius
-        distance = pos * encoder_to_mech_ratio  # convert rotations to cm
+        distance = pos * (2 * math.pi * kWheelRadius) # convert rotations to cm
         rot = Rotation2d(
             self.turnEncoder.get_absolute_position().value * math.tau
         )
@@ -125,14 +138,13 @@ class SwerveModule:
         # 0 and 90 degrees will scale the speed accordingly.
         state.speed *= (state.angle - encoderRotation).cos()
 
-        SmartDashboard.putNumber("state speed", state.speed)
-        SmartDashboard.putNumber("Drive motor velocity", self.driveMotor.get_velocity().value * encoder_to_mech_ratio)
+        SmartDashboard.putNumber(f'{self.name} state speed', state.speed)
+        SmartDashboard.putNumber(f'{self.name} Velocity', self.driveMotor.get_velocity().value)
+        SmartDashboard.putNumber(f'{self.name} Velocity*enc', self.driveMotor.get_velocity().value * (2 * math.pi * kWheelRadius))
 
         # Calculate the drive output from the drive PID controller.
-        driveOutput = self.drivePIDController.calculate(
-            self.driveMotor.get_velocity().value * encoder_to_mech_ratio, state.speed
-        )
-
+        driveOutput = state.speed / (2 * math.pi * kWheelRadius)
+        
         # This come -0.5 to 0.5, so we must make it radians by scaling it up
         turn_pos = self.turnEncoder.get_absolute_position().value * math.tau
 
@@ -142,5 +154,6 @@ class SwerveModule:
         )
 
         # Now set the motor outputs where 0 is none and 1 is full
-        self.driveMotor.set_control(DutyCycleOut(driveOutput))
+        SmartDashboard.putNumber(f'{self.name} driveOutput', driveOutput)
+        self.driveMotor.set_control(VelocityDutyCycle(driveOutput))
         self.turningMotor.set_control(DutyCycleOut(turnOutput))

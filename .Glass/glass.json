@@ -1,0 +1,36 @@
+{
+  "NetworkTables": {
+    "transitory": {
+      "PathPlanner": {
+        "open": true
+      },
+      "Shuffleboard": {
+        "open": true
+      },
+      "SmartDashboard": {
+        "open": true
+      }
+    },
+    "types": {
+      "/FMSInfo": "FMSInfo",
+      "/SmartDashboard/Back left PID": "PIDController",
+      "/SmartDashboard/Back right PID": "PIDController",
+      "/SmartDashboard/Front left PID": "PIDController",
+      "/SmartDashboard/Front right PID": "PIDController"
+    },
+    "windows": {
+      "/SmartDashboard/Back left PID": {
+        "window": {
+          "visible": true
+        }
+      }
+    }
+  },
+  "NetworkTables Info": {
+    "visible": true
+  },
+  "NetworkTables Settings": {
+    "mode": "Client (NT4)",
+    "serverTeam": "4003"
+  }
+}

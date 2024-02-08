@@ -142,7 +142,7 @@ class MyRobot(commands2.TimedCommandRobot):
     def driveWithJoystick(self, fieldRelative: bool) -> None:
         xSpeed = -(
             self.xspeedLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getRawAxis(1), 0.02)
+                wpimath.applyDeadband(self.controller.getRawAxis(1), 0.04)
             )
 
         )
@@ -151,7 +151,7 @@ class MyRobot(commands2.TimedCommandRobot):
 
         ySpeed = -(
             self.yspeedLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getRawAxis(0), 0.02)
+                wpimath.applyDeadband(self.controller.getRawAxis(0), 0.04)
             )
 
         )
@@ -159,7 +159,7 @@ class MyRobot(commands2.TimedCommandRobot):
         ySpeed = ySpeed * ySpeed * ysign * drivetrain.kMaxSpeed
         rot = (
             -self.rotLimiter.calculate(
-                wpimath.applyDeadband(self.controller.getRawAxis(4), 0.02)
+                wpimath.applyDeadband(self.controller.getRawAxis(4), 0.04)
             )
 
         )
