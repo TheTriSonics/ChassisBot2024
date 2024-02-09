@@ -18,7 +18,7 @@ import wpimath.filter
 import wpimath.controller
 import drivetrain
 from wpilib import SmartDashboard
-from commands.drivefortime import DriveForTime
+from commands.rotate import Rotate
 from commands.drivefordistance import DriveForDistance
 from commands.haltdrive import HaltDrive
 from commands.drivetopoint import DriveToPoint
@@ -68,8 +68,8 @@ class MyRobot(commands2.TimedCommandRobot):
         # cmd = HaltDrive(self.swerve)
         self.swerve.resetOdometry()
         self.gyro.set_yaw(-90)
-        cmd = PathPlannerAuto("happy")
-        # cmd = DriveToPoint(self.swerve, self.gyro, 2, 0, 0)
+        cmd = PathPlannerAuto("Station3")
+        # cmd = Rotate(self.swerve, self.gyro, 0)
         haltcmd = HaltDrive(self.swerve)
         scg = commands2.SequentialCommandGroup([cmd, haltcmd])
         scg.schedule()

@@ -14,13 +14,7 @@
         {
           "type": "path",
           "data": {
-            "pathName": "StartToAmp"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "AmptoNote1"
+            "pathName": "Station1ToNote1"
           }
         },
         {
@@ -33,6 +27,12 @@
           "type": "path",
           "data": {
             "pathName": "Note4toShoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note1ToNote5"
           }
         }
       ]

@@ -3,29 +3,29 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 8.328894372074458,
-        "y": 4.089988751406074
+        "x": 8.29957545629377,
+        "y": 2.4041510940164743
       },
       "prevControl": null,
       "nextControl": {
-        "x": 7.325193968645705,
-        "y": 3.5499861951808143
+        "x": 7.112159367175877,
+        "y": 1.3340106680213368
       },
       "isLocked": false,
       "linkedName": "Note7"
     },
     {
       "anchor": {
-        "x": 5.015856888856635,
-        "y": 3.9287347146122866
+        "x": 5.177110925650423,
+        "y": 1.9497078994158
       },
       "prevControl": {
-        "x": 5.754580544699202,
-        "y": 4.469892741566726
+        "x": 6.034122227400832,
+        "y": 1.627068350521528
       },
       "nextControl": {
-        "x": 3.755143510287021,
-        "y": 3.0051888675205927
+        "x": 3.9310570049711533,
+        "y": 2.418810551906819
       },
       "isLocked": false,
       "linkedName": "Waypoint1"
@@ -48,9 +48,9 @@
   "constraintZones": [],
   "eventMarkers": [],
   "globalConstraints": {
-    "maxVelocity": 3.5,
-    "maxAcceleration": 10.0,
-    "maxAngularVelocity": 720.0,
+    "maxVelocity": 2.5,
+    "maxAcceleration": 8.0,
+    "maxAngularVelocity": 360.0,
     "maxAngularAcceleration": 360.0
   },
   "goalEndState": {
@@ -64,5 +64,5 @@
     "rotation": 44.62552311281522,
     "velocity": 0
   },
-  "useDefaultConstraints": true
+  "useDefaultConstraints": false
 }

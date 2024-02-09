@@ -20,37 +20,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "Note3ToNote8"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Note8ToShoot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "ShootToNote7"
+            "pathName": "Note3ToNote7"
           }
         },
         {
           "type": "path",
           "data": {
             "pathName": "Note7ToShoot"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "ShootToNote6"
-          }
-        },
-        {
-          "type": "path",
-          "data": {
-            "pathName": "Note6ToShootAround"
           }
         }
       ]

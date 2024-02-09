@@ -2,8 +2,8 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 8.288745946861262,
-      "y": 4.123137615644601
+      "x": 1.3829526758152613,
+      "y": 5.574556013976893
     },
     "rotation": 0
   },
@@ -14,7 +14,25 @@
         {
           "type": "path",
           "data": {
-            "pathName": "New New Path"
+            "pathName": "StartToNote2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note2ToNote5"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note5ToShoot"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note2ToNote6"
           }
         }
       ]
