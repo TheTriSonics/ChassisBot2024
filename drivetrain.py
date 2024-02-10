@@ -19,7 +19,7 @@ from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig,
 
 # TODO: Set to a real value in centimeters per second
 kMaxSpeed = 4.8 # m/s
-kMaxAngularSpeed = math.pi * 3
+kMaxAngularSpeed = math.pi * 5
 
 swerve_offset = 30 / 100  # cm converted to meters
 
