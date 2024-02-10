@@ -1,7 +1,7 @@
 from commands2 import CommandBase
 from wpilib import SmartDashboard
 from wpimath.controller import PIDController
-from drivetrain import Drivetrain
+from subsystems.drivetrain import Drivetrain
 
 class DriveToPoint(CommandBase):
     def __init__(self, drive: Drivetrain, gyro, x, y, targetHeading):

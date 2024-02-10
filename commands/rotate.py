@@ -1,7 +1,7 @@
 from commands2 import CommandBase
 from wpilib import SmartDashboard
 from wpimath.controller import PIDController
-from drivetrain import Drivetrain
+from subsystems.drivetrain import Drivetrain
 
 class Rotate(CommandBase):
     def __init__(self, drive: Drivetrain, gyro, targetHeading):
@@ -13,7 +13,7 @@ class Rotate(CommandBase):
         self.xPID = PIDController(p, i, d)
         self.yPID = PIDController(p, i, d)
         self.rotPID = PIDController(0.10, 0, 0)
-
+    
     def initialize(self):
         SmartDashboard.putString("dtp" , "i AM the dtp")
 

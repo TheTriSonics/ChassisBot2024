@@ -8,7 +8,7 @@ import math
 import ntcore
 import wpimath.geometry
 import wpimath.kinematics
-import swervemodule
+import subsystems.swervemodule as swervemodule
 from phoenix6.hardware import Pigeon2
 from wpilib import SmartDashboard, DriverStation
 from wpimath.geometry import Rotation2d, Pose2d
