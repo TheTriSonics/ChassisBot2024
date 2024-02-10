@@ -16,7 +16,7 @@ import wpimath
 import wpilib.drive
 import wpimath.filter
 import wpimath.controller
-import drivetrain
+import subsystems.drivetrain as drivetrain 
 from wpilib import SmartDashboard
 from commands.rotate import Rotate
 from commands.drivefordistance import DriveForDistance
