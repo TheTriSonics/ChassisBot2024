@@ -16,16 +16,16 @@
     },
     {
       "anchor": {
-        "x": 5.177110925650423,
-        "y": 1.9497078994158
+        "x": 4.886695178795763,
+        "y": 1.5808442427695677
       },
       "prevControl": {
-        "x": 6.034122227400832,
-        "y": 1.627068350521528
+        "x": 5.743706480546172,
+        "y": 1.2582046938752958
       },
       "nextControl": {
-        "x": 3.9310570049711533,
-        "y": 2.418810551906819
+        "x": 3.640641258116493,
+        "y": 2.0499468952605855
       },
       "isLocked": false,
       "linkedName": "Waypoint1"
@@ -50,8 +50,8 @@
   "globalConstraints": {
     "maxVelocity": 2.5,
     "maxAcceleration": 8.0,
-    "maxAngularVelocity": 360.0,
-    "maxAngularAcceleration": 360.0
+    "maxAngularVelocity": 900.0,
+    "maxAngularAcceleration": 500.0
   },
   "goalEndState": {
     "velocity": 0,
@@ -64,5 +64,5 @@
     "rotation": 44.62552311281522,
     "velocity": 0
   },
-  "useDefaultConstraints": false
+  "useDefaultConstraints": true
 }
