@@ -1,3 +1,7 @@
 __pycache__
 venv
 ctre_sim/
+networktables.json
+simgui-ds.json
+simgui-window.json
+simgui.json
