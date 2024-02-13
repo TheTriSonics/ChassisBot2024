@@ -4,7 +4,7 @@
 		"dockerfile": "Dockerfile",
 		// Update 'VARIANT' to pick an Debian version: bullseye, buster
 		// Use bullseye on local arm64/Apple Silicon.
-		"args": { "VARIANT": "bullseye" }
+		"args": { "VARIANT": "bookworm" }
 	},
 
 	// Use 'forwardPorts' to make a list of ports inside the container available locally.
