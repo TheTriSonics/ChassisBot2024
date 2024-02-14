@@ -124,9 +124,10 @@ class SwerveModule:
 
         :param desiredState: Desired state with speed and angle.
         """
-        encoderRotation = Rotation2d(
-            self.turnEncoder.get_absolute_position().value
-        )
+        # This come -0.5 to 0.5, so we must make it radians by scaling it up
+        turn_pos = self.turnEncoder.get_absolute_position().value * math.tau
+
+        encoderRotation = Rotation2d(turn_pos)
 
         # Optimize the reference state to avoid spinning further than 90 deg
         state = SwerveModuleState.optimize(desiredState, encoderRotation)
@@ -142,10 +143,7 @@ class SwerveModule:
         SmartDashboard.putNumber(f'{self.name} Velocity*enc', self.driveMotor.get_velocity().value * (2 * math.pi * kWheelRadius))
 
         # Calculate the drive output from the drive PID controller.
-        driveOutput = state.speed / (2 * math.pi * kWheelRadius)
-
-        # This come -0.5 to 0.5, so we must make it radians by scaling it up
-        turn_pos = self.turnEncoder.get_absolute_position().value * math.tau
+        driveOutput = state.speed / (math.tau * kWheelRadius)
 
         # Calculate the turning motor output from the turning PID controller.
         turnOutput = self.turningPIDController.calculate(
