@@ -2,7 +2,7 @@
 #chloe thomsen
 #Gavin Is a giant turtle
 #Actually anything you want or the words anything you want because that would be funny
-# The sun is a deadly lazer 
+# The sun is a deadly lazer
 #Sam was here
 # Copyright (c) FIRST and other WPILib contributors.
 # Open Source Software; you can modify and/or share it under the terms of
@@ -20,7 +20,7 @@ import wpimath
 import wpilib.drive
 import wpimath.filter
 import wpimath.controller
-import subsystems.drivetrain as drivetrain 
+import subsystems.drivetrain as drivetrain
 from wpilib import SmartDashboard
 from commands.rotate import Rotate
 from commands.drivefordistance import DriveForDistance
@@ -32,13 +32,13 @@ from pathplannerlib.auto import PathPlannerAuto
 from pathplannerlib.commands import FollowPathHolonomic
 from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 
- 
+
 class MyRobot(commands2.TimedCommandRobot):
     def robotInit(self) -> None:
         """Robot initialization function"""
         # self.controller = wpilib.XboxController(0)
         self.controller = wpilib.Joystick(0)
-        
+
         self.gyro = Gyro()
         self.swerve = drivetrain.Drivetrain(self.gyro)
 
@@ -95,12 +95,12 @@ class MyRobot(commands2.TimedCommandRobot):
     def teleopPeriodic(self) -> None:
         if self.controller.getRawButtonPressed(2):
             self.swerve.toggleFieldRelative()
-        
+
         self.driveWithJoystick(False)
         self.swerve.updateOdometry()
         SmartDashboard.putNumber("yaw", self.gyro.get_yaw())
         currx, curry = self.getVisionXY()
-        
+
         if currx is not None and curry is not None:
             SmartDashboard.putNumber('vx', currx)
             SmartDashboard.putNumber('vy', curry)
@@ -124,25 +124,6 @@ class MyRobot(commands2.TimedCommandRobot):
                     curry = totaly / targets
         return currx, curry
 
-    def getVisionXY(self):
-        data = self.swerve.ll_json_entry.get()
-        obj = json.loads(data)
-        totalx, totaly = 0, 0
-        currx, curry = None, None
-        if len(obj) > 0 and 'Results' in obj.keys():
-            obj = obj['Results']
-            if 'Fiducial' in obj.keys():
-                obj = obj['Fiducial']
-                targets = len(obj)
-                pp = json.dumps(obj, indent=4)
-                for f in obj:
-                    totalx += f['tx']
-                    totaly += f['ty']
-                if targets > 0:
-                    currx = totalx / targets
-                    curry = totaly / targets
-        return currx, curry
-                    
     def driveWithJoystick(self, fieldRelative: bool) -> None:
         xSpeed = -(
             self.xspeedLimiter.calculate(
