@@ -6,38 +6,36 @@
 
 import math
 import ntcore
-import wpimath.geometry
-import wpimath.kinematics
 import subsystems.swervemodule as swervemodule
-from phoenix6.hardware import Pigeon2
+from commands2 import Subsystem
 from wpilib import SmartDashboard, DriverStation
-from wpimath.geometry import Rotation2d, Pose2d
-from wpimath.kinematics import SwerveModuleState
-
+from wpimath.geometry import Rotation2d, Pose2d, Translation2d
+from wpimath.kinematics import (
+    SwerveModuleState, SwerveDrive4Kinematics, SwerveDrive4Odometry,
+    SwerveModulePosition, ChassisSpeeds
+)
 from pathplannerlib.auto import AutoBuilder
-from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
+from pathplannerlib.config import (
+    HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
+)
 
-# TODO: Set to a real value in centimeters per second
-kMaxSpeed = 4.8 # m/s
+kMaxSpeed = 4.8  # m/s
 kMaxAngularSpeed = math.pi * 5
 
 swerve_offset = 30 / 100  # cm converted to meters
 
 
-class Drivetrain:
+class Drivetrain(Subsystem):
     """
     Represents a swerve drive style drivetrain.
     """
-
-    def llJson(self) -> str:
-        return self.ll_json.getEntry("[]")
-
     def __init__(self, gyro) -> None:
+        super().__init__()
         # TODO: Set these to the right numbers in centimeters
-        self.frontLeftLocation = wpimath.geometry.Translation2d(swerve_offset, swerve_offset)
-        self.frontRightLocation = wpimath.geometry.Translation2d(swerve_offset, -swerve_offset)
-        self.backLeftLocation = wpimath.geometry.Translation2d(-swerve_offset, swerve_offset)
-        self.backRightLocation = wpimath.geometry.Translation2d(-swerve_offset, -swerve_offset)
+        self.frontLeftLocation = Translation2d(swerve_offset, swerve_offset)
+        self.frontRightLocation = Translation2d(swerve_offset, -swerve_offset)
+        self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
+        self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
 
         self.frontLeft = swervemodule.SwerveModule(12, 22, 32, False, 'Front left')
         self.frontRight = swervemodule.SwerveModule(11, 21, 31, True, 'Front right')
@@ -48,20 +46,20 @@ class Drivetrain:
         self.ll_json = self.ntinst.getStringTopic("json")
         self.ll_json_entry = self.ll_json.getEntry('[]')
 
-        self.fieldRelative = False    
+        self.fieldRelative = False
 
         self.gyro = gyro
 
         self.cs = None
 
-        self.kinematics = wpimath.kinematics.SwerveDrive4Kinematics(
+        self.kinematics = SwerveDrive4Kinematics(
             self.frontLeftLocation,
             self.frontRightLocation,
             self.backLeftLocation,
             self.backRightLocation,
         )
 
-        self.odometry = wpimath.kinematics.SwerveDrive4Odometry(
+        self.odometry = SwerveDrive4Odometry(
             self.kinematics,
             self.get_heading_rotation_2d(),
             (
@@ -91,13 +89,16 @@ class Drivetrain:
             self # Reference to this subsystem to set requirements
         )
 
+    def llJson(self) -> str:
+        return self.ll_json.getEntry("[]")
+
     def getSpeeds(self):
         self.cs = self.kinematics.toChassisSpeeds([self.frontLeft.getState(), self.frontRight.getState(), self.backLeft.getState(), self.backRight.getState()])
         # if self.cs is None:
         #     return wpimath.kinematics.ChassisSpeeds(0,0,0)
         SmartDashboard.putNumber("csvx", self.cs.vx)
         SmartDashboard.putNumber("csvy", self.cs.vy)
-        
+
         return self.cs
 
     def driveRobotRelative(self, speeds):
@@ -107,9 +108,9 @@ class Drivetrain:
         # SmartDashboard.putNumber("vy", speeds.vy)
         # SmartDashboard.putNumber("omega", speeds.omega)
         # self.cs = speeds
-        swerveModuleStates = self.kinematics.toSwerveModuleStates(speeds, wpimath.geometry.Translation2d(0, 0))
-        
-        wpimath.kinematics.SwerveDrive4Kinematics.desaturateWheelSpeeds(
+        swerveModuleStates = self.kinematics.toSwerveModuleStates(speeds, Translation2d(0, 0))
+
+        SwerveDrive4Kinematics.desaturateWheelSpeeds(
             swerveModuleStates, kMaxSpeed
         )
 
@@ -123,16 +124,16 @@ class Drivetrain:
         return DriverStation.getAlliance() == DriverStation.Alliance.kRed
 
     def resetOdometry(self, pose: Pose2d = None):
-        if pose == None:
+        if pose is None:
             self.gyro.set_yaw(0)
             defaultPos = (
-                wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-                wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-                wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
-                wpimath.kinematics.SwerveModulePosition(0, Rotation2d(0)),
+                SwerveModulePosition(0, Rotation2d(0)),
+                SwerveModulePosition(0, Rotation2d(0)),
+                SwerveModulePosition(0, Rotation2d(0)),
+                SwerveModulePosition(0, Rotation2d(0)),
             )
             self.odometry.resetPosition(
-                Rotation2d(), defaultPos, wpimath.geometry.Pose2d()
+                Rotation2d(), defaultPos, Pose2d()
             )
         else:
             self.gyro.set_yaw(pose.rotation().degrees())
@@ -171,13 +172,14 @@ class Drivetrain:
         :param periodSeconds: Time
         """
         if self.fieldRelative:
-            self.cs = wpimath.kinematics.ChassisSpeeds.fromFieldRelativeSpeeds(
+            self.cs = ChassisSpeeds.fromFieldRelativeSpeeds(
                     xSpeed, ySpeed, rot, self.get_heading_rotation_2d(),
                 )
         else:
-            self.cs = wpimath.kinematics.ChassisSpeeds(xSpeed, ySpeed, rot)
-        swerveModuleStates = self.kinematics.toSwerveModuleStates(self.cs, wpimath.geometry.Translation2d(0, 0))
-        wpimath.kinematics.SwerveDrive4Kinematics.desaturateWheelSpeeds(
+            self.cs = ChassisSpeeds(xSpeed, ySpeed, rot)
+
+        swerveModuleStates = self.kinematics.toSwerveModuleStates(self.cs, Translation2d(0, 0))
+        SwerveDrive4Kinematics.desaturateWheelSpeeds(
             swerveModuleStates, kMaxSpeed
         )
         self.frontLeft.setDesiredState(swerveModuleStates[0])

@@ -1,7 +1,9 @@
-from wpilib import CANSparkMax, SubsystemBase
 from enum import Enum
+from commands2 import Subsystem
+from rev import CANSparkMax
 
-class Diverter(SubsystemBase):
+
+class Diverter(Subsystem):
     class Direction(Enum):
         SHOOTER = 1
         AMP = -1
@@ -17,8 +19,7 @@ class Diverter(SubsystemBase):
     def set_shooter(self):
         self.direction = Diverter.Direction.SHOOTER
 
-
-    def go_direction(self, direction):
+    def set_direction(self, direction):
         self.motor.set(0.5)  # Set motor speed to 50% power
         self.direction = direction
         self.motor.set(direction.value)

@@ -5,11 +5,12 @@
 #
 
 import math
-import wpimath.kinematics
-import wpimath.trajectory
 
 from wpimath.geometry import Rotation2d
 from wpimath.controller import PIDController
+from wpimath.kinematics import (
+    SwerveModuleState, SwerveModulePosition
+)
 from phoenix6.hardware import TalonFX, CANcoder
 from phoenix6.controls import DutyCycleOut, VelocityDutyCycle
 from phoenix6 import configs, signals
@@ -18,10 +19,10 @@ from wpilib import SmartDashboard
 
 kModuleMaxAngularVelocity = math.pi*10
 kModuleMaxAngularAcceleration = math.tau
-kWheelRadius = 0.0508 # m
+kWheelRadius = 0.0508  # m
 # kGearRatio = 7.131
 
-# encoder_to_mech_ratio = 
+# encoder_to_mech_ratio =
 
 
 class SwerveModule:
@@ -78,7 +79,7 @@ class SwerveModule:
         self.turningPIDController.enableContinuousInput(-math.pi, math.pi)
         self.driveMotor.set_position(0)
 
-    def getState(self) -> wpimath.kinematics.SwerveModuleState:
+    def getState(self) -> SwerveModuleState:
         """Returns the current state of the module.
 
         :returns: The current state of the module.
@@ -90,9 +91,9 @@ class SwerveModule:
         rot = Rotation2d(
             self.turnEncoder.get_absolute_position().value * math.tau
         )
-        return wpimath.kinematics.SwerveModuleState(speed, rot)
+        return SwerveModuleState(speed, rot)
 
-    def getPosition(self) -> wpimath.kinematics.SwerveModulePosition:
+    def getPosition(self) -> SwerveModulePosition:
         """Returns the current position of the module.
 
         :returns: The current position of the module.:46
@@ -106,7 +107,7 @@ class SwerveModule:
         rot = Rotation2d(
             self.turnEncoder.get_absolute_position().value * math.tau
         )
-        return wpimath.kinematics.SwerveModulePosition(distance, rot)
+        return SwerveModulePosition(distance, rot)
 
     def lock(self):
         self.driveMotor.set_control(
@@ -117,7 +118,7 @@ class SwerveModule:
         )
 
     def setDesiredState(
-        self, desiredState: wpimath.kinematics.SwerveModuleState
+        self, desiredState: SwerveModuleState
     ) -> None:
         """Sets the desired state for the module.
 
@@ -128,9 +129,7 @@ class SwerveModule:
         )
 
         # Optimize the reference state to avoid spinning further than 90 deg
-        state = wpimath.kinematics.SwerveModuleState.optimize(
-            desiredState, encoderRotation
-        )
+        state = SwerveModuleState.optimize(desiredState, encoderRotation)
 
         # Scale speed by cosine of angle error. If the error is 90 degrees
         # cos(90) = 0, and the wheels will not spin. If the error is 0 degrees,
@@ -144,7 +143,7 @@ class SwerveModule:
 
         # Calculate the drive output from the drive PID controller.
         driveOutput = state.speed / (2 * math.pi * kWheelRadius)
-        
+
         # This come -0.5 to 0.5, so we must make it radians by scaling it up
         turn_pos = self.turnEncoder.get_absolute_position().value * math.tau
 
