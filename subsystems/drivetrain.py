@@ -108,7 +108,7 @@ class Drivetrain(Subsystem):
         # SmartDashboard.putNumber("vy", speeds.vy)
         # SmartDashboard.putNumber("omega", speeds.omega)
         # self.cs = speeds
-        swerveModuleStates = self.kinematics.toSwerveModuleStates(speeds, Translation2d(0, 0))
+        swerveModuleStates = self.kinematics.toSwerveModuleStates(speeds)
 
         SwerveDrive4Kinematics.desaturateWheelSpeeds(
             swerveModuleStates, kMaxSpeed
