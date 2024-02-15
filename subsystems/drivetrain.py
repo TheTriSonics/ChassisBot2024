@@ -19,7 +19,7 @@ from pathplannerlib.config import (
     HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
 )
 
-kMaxSpeed = 4.8  # m/s
+kMaxSpeed = 4.6  # m/s
 kMaxAngularSpeed = math.pi * 5
 
 swerve_offset = 30 / 100  # cm converted to meters
@@ -79,11 +79,15 @@ class Drivetrain(Subsystem):
             self.getSpeeds, # ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
             self.driveRobotRelative, # Method that will drive the robot given ROBOT RELATIVE ChassisSpeeds
             HolonomicPathFollowerConfig( # HolonomicPathFollowerConfig, this should likely live in your Constants class
-                PIDConstants(1.9, 0.0, 0.0), # Translation PID constants
+                PIDConstants(4.0, 0.0, 0.0), # Translation PID constants
                 PIDConstants(1.6, 0.0, 0.0), # Rotation PID constants
                 kMaxSpeed, # Max module speed, in m/s.
                 0.431, # Drive base radius in meters. Distance from robot center to furthest module.
-                ReplanningConfig() # Default path replanning config. See the API for the options here
+                ReplanningConfig(
+                    enableDynamicReplanning = False,
+                    dynamicReplanningTotalErrorThreshold = 0.2,
+                    dynamicReplanningErrorSpikeThreshold = 0.15
+                ) # Default path replanning config. See the API for the options here
             ),
             self.shouldFlipPath, # Supplier to control path flipping based on alliance color
             self # Reference to this subsystem to set requirements

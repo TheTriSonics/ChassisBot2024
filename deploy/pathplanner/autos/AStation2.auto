@@ -2,10 +2,10 @@
   "version": 1.0,
   "startingPose": {
     "position": {
-      "x": 8.29957545629377,
-      "y": 2.4041510940164743
+      "x": 1.3829526758152613,
+      "y": 5.574556013976893
     },
-    "rotation": 37.935608736854874
+    "rotation": 180.0
   },
   "command": {
     "type": "sequential",
@@ -14,7 +14,13 @@
         {
           "type": "path",
           "data": {
-            "pathName": "ANote7toShoot"
+            "pathName": "StartToNote2"
+          }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note2ToNote5"
           }
         }
       ]

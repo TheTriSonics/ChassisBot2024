@@ -34,6 +34,12 @@
           "data": {
             "pathName": "Note1ToNote5"
           }
+        },
+        {
+          "type": "path",
+          "data": {
+            "pathName": "Note5ToShoot1"
+          }
         }
       ]
     }

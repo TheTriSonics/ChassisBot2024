@@ -72,7 +72,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # cmd = HaltDrive(self.swerve)
         self.swerve.resetOdometry()
         self.gyro.set_yaw(45)
-        cmd = PathPlannerAuto("Goofy")
+        cmd = PathPlannerAuto("AStation2")
         # cmd = Rotate(self.swerve, self.gyro, 0)
         haltcmd = HaltDrive(self.swerve)
         scg = commands2.SequentialCommandGroup([cmd, haltcmd])

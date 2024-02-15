@@ -8,8 +8,8 @@
       },
       "prevControl": null,
       "nextControl": {
-        "x": 6.698657000917604,
-        "y": 2.7641662490532193
+        "x": 5.459866775589407,
+        "y": 3.374316658543228
       },
       "isLocked": false,
       "linkedName": "Note6"
@@ -20,8 +20,8 @@
         "y": 5.574556013976893
       },
       "prevControl": {
-        "x": 5.737207870812138,
-        "y": 3.272624923628226
+        "x": 5.173280977192585,
+        "y": 4.021445880729599
       },
       "nextControl": null,
       "isLocked": false,
@@ -40,12 +40,12 @@
   "goalEndState": {
     "velocity": 0,
     "rotation": 178.9190758133392,
-    "rotateFast": false
+    "rotateFast": true
   },
   "reversed": false,
   "folder": null,
   "previewStartingState": {
-    "rotation": 180.0,
+    "rotation": 18.138082155597314,
     "velocity": 0
   },
   "useDefaultConstraints": false
