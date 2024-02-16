@@ -2,11 +2,11 @@ from commands2 import Subsystem
 from phoenix6.hardware import TalonFX
 from phoenix6.controls import DutyCycleOut
 
-
+# TODO: Change to 2x Spark Max
 class ClimberSubsystem(Subsystem):
     def __init__(self):
         super().__init__()
-
+        
         # Initialize the motor controller
         self.climber_motor = TalonFX(999)
 

@@ -1,6 +1,6 @@
 import commands2
 from time import time
-from subsystems.drivetrain import Drivetrain
+from subsystems.mechanical.drivetrain import Drivetrain
 from wpilib import SmartDashboard
 
 

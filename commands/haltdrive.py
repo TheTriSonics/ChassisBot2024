@@ -2,7 +2,7 @@ import commands2
 import math
 
 from wpilib import SmartDashboard
-from subsystems.drivetrain import Drivetrain
+from subsystems.mechanical.drivetrain import Drivetrain
 from wpimath.geometry import Rotation2d
 from wpimath.kinematics import SwerveModuleState
 

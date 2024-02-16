@@ -1,7 +1,7 @@
 from commands2 import CommandBase
 from wpilib import SmartDashboard
 from wpimath.controller import PIDController
-from subsystems.drivetrain import Drivetrain
+from subsystems.mechanical.drivetrain import Drivetrain
 
 class Rotate(CommandBase):
     def __init__(self, drive: Drivetrain, gyro, targetHeading):

@@ -1,17 +1,11 @@
 #!/usr/bin/env python3
-#chloe thomsen
-#Gavin Is a giant turtle
-#Actually anything you want or the words anything you want because that would be funny
-# The sun is a deadly lazer
-#Sam was here
 # Copyright (c) FIRST and other WPILib contributors.
 # Open Source Software; you can modify and/or share it under the terms of
 # the WPILib BSD license file in the root directory of this project.
 #
 
-# All units of length will be in centimeters or converted from another unit
-# to centimeters for internal use.a (Leading 0's on meters can be hard to
-# keep track of, so we'll use centimeters instead)
+# All units of length will be in meters or converted from another unit
+# to meters for internal use.
 
 import json
 import wpilib
@@ -20,17 +14,20 @@ import wpimath
 import wpilib.drive
 import wpimath.filter
 import wpimath.controller
-import subsystems.drivetrain as drivetrain
+import subsystems.mechanical.drivetrain as drivetrain
+import constants as ct
 from wpilib import SmartDashboard
 from commands.rotate import Rotate
 from commands.drivefordistance import DriveForDistance
 from commands.haltdrive import HaltDrive
 from commands.drivetopoint import DriveToPoint
-from subsystems.gyro import Gyro
+from subsystems.sensors.gyro import Gyro
 from pathplannerlib.path import PathPlannerPath
 from pathplannerlib.auto import PathPlannerAuto
 from pathplannerlib.commands import FollowPathHolonomic
 from pathplannerlib.config import HolonomicPathFollowerConfig, ReplanningConfig, PIDConstants
+
+from subsystems.sensors.photoeyes import Photoeyes
 
 
 class MyRobot(commands2.TimedCommandRobot):
@@ -72,7 +69,7 @@ class MyRobot(commands2.TimedCommandRobot):
         # cmd = HaltDrive(self.swerve)
         self.swerve.resetOdometry()
         self.gyro.set_yaw(45)
-        cmd = PathPlannerAuto("AStation2")
+        cmd = PathPlannerAuto("Station1")
         # cmd = Rotate(self.swerve, self.gyro, 0)
         haltcmd = HaltDrive(self.swerve)
         scg = commands2.SequentialCommandGroup([cmd, haltcmd])

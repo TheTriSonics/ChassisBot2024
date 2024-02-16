@@ -6,7 +6,8 @@
 
 import math
 import ntcore
-import subsystems.swervemodule as swervemodule
+import subsystems.mechanical.swervemodule as swervemodule
+import constants as ct
 from commands2 import Subsystem
 from wpilib import SmartDashboard, DriverStation
 from wpimath.geometry import Rotation2d, Pose2d, Translation2d
@@ -37,10 +38,10 @@ class Drivetrain(Subsystem):
         self.backLeftLocation = Translation2d(-swerve_offset, swerve_offset)
         self.backRightLocation = Translation2d(-swerve_offset, -swerve_offset)
 
-        self.frontLeft = swervemodule.SwerveModule(12, 22, 32, False, 'Front left')
-        self.frontRight = swervemodule.SwerveModule(11, 21, 31, True, 'Front right')
-        self.backLeft = swervemodule.SwerveModule(14, 24, 34, False, 'Back left')
-        self.backRight = swervemodule.SwerveModule(13, 23, 33, True, 'Back right')
+        self.frontLeft = swervemodule.SwerveModule(ct.FRONT_LEFT_DRIVE, ct.FRONT_LEFT_TURN, ct.FRONT_LEFT_DRIVE_ENCODER, False, 'Front left')
+        self.frontRight = swervemodule.SwerveModule(ct.FRONT_RIGHT_DRIVE, ct.FRONT_RIGHT_TURN, ct.FRONT_RIGHT_DRIVE_ENCODER, True, 'Front right')
+        self.backLeft = swervemodule.SwerveModule(ct.BACK_LEFT_DRIVE, ct.BACK_LEFT_TURN, ct.BACK_LEFT_DRIVE_ENCODER, False, 'Back left')
+        self.backRight = swervemodule.SwerveModule(ct.BACK_RIGHT_DRIVE, ct.BACK_RIGHT_TURN, ct.BACK_RIGHT_DRIVE_ENCODER, True, 'Back right')
 
         self.ntinst = ntcore.NetworkTableInstance.getDefault().getTable('limelight')
         self.ll_json = self.ntinst.getStringTopic("json")

@@ -2,7 +2,7 @@ from enum import Enum
 from commands2 import Subsystem
 from rev import CANSparkMax
 
-
+#TODO: This doesn't fully exist anymore. Diverter wheel is now part of the Amp System.
 class Diverter(Subsystem):
     class Direction(Enum):
         SHOOTER = 1
@@ -20,9 +20,7 @@ class Diverter(Subsystem):
         self.direction = Diverter.Direction.SHOOTER
 
     def set_direction(self, direction):
-        self.motor.set(0.5)  # Set motor speed to 50% power
-        self.direction = direction
-        self.motor.set(direction.value)
+        self.motor.set(0.5 * direction)  # Set motor speed to 50% power
 
     def go_shooter(self):
         self.set_direction(Diverter.Direction.SHOOTER)

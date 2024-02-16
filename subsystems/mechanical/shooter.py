@@ -1,5 +1,6 @@
 from commands2 import Subsystem
 from phoenix6.hardware import TalonFX
+from rev import CANSparkMax
 
 
 class Shooter(Subsystem):
@@ -8,14 +9,18 @@ class Shooter(Subsystem):
 
         # Initialize the motor controllers
         # Replace with the type of motor controller you're using
-        self.shooter_motor = TalonFX(0)
-        self.elevation_motor = TalonFX(1)
+        self.shooter_motor_L = TalonFX(0)
+        self.shooter_motor_R = TalonFX(1)
+        self.feeder_motor = TalonFX(2)
+
+        self.tilt_motor_L = CANSparkMax(3)
+        self.tilt_motor_R = CANSparkMax(4)
 
         # Initialize the target speed
         self.target_speed = 0
 
-    def set_elevation(self, value):
-        # Set the speed of the elevation motor
+    def set_angle(self, value):
+        # Set the angle of the shooter
         # self.elevation_motor.set(value)
         pass
 
