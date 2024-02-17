@@ -1,5 +1,6 @@
+import constants as ct
 from commands2 import Subsystem
-from phoenix6.hardware import TalonFX
+from phoenix6.hardware import TalonFX, CANcoder
 from rev import CANSparkMax
 
 
@@ -7,14 +8,17 @@ class Shooter(Subsystem):
     def __init__(self):
         super().__init__()
 
-        # Initialize the motor controllers
-        # Replace with the type of motor controller you're using
-        self.shooter_motor_L = TalonFX(0)
-        self.shooter_motor_R = TalonFX(1)
-        self.feeder_motor = TalonFX(2)
+        # Motor Types: 2x Krakens for shooter, 1x Kraken for feeder, 2x NEO 550s for tilt
+        self.shooter_motor_L = TalonFX(ct.SHOOTER_MOTOR_L)
+        self.shooter_motor_R = TalonFX(ct.SHOOTER_MOTOR_R)
+        self.feeder_motor = TalonFX(ct.SHOOTER_FEEDER_MOTOR)
 
-        self.tilt_motor_L = CANSparkMax(3)
-        self.tilt_motor_R = CANSparkMax(4)
+        self.tilt_motor_L = CANSparkMax(ct.SHOOTER_TILT_MOTOR_L)
+        self.tilt_motor_R = CANSparkMax(ct.SHOOTER_TILT_MOTOR_R)
+
+        self.tilt_encoder = CANcoder(ct.SHOOTER_TILT_ENCODER)
+
+        self.tilt_motor_R.setInverted(True)
 
         # Initialize the target speed
         self.target_speed = 0

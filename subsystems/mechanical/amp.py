@@ -1,3 +1,4 @@
+import constants as ct
 from commands2 import Subsystem
 from phoenix6.hardware import TalonFX
 from rev import CANSparkMax
@@ -12,10 +13,9 @@ class Amp(Subsystem):
     def __init__(self):
         super().__init__()
 
-        # Initialize the motor controllers
-        # Replace with the type of motor controller you're using
-        self.lift_motor = TalonFX(0)
-        self.roller_motor = CANSparkMax(1)
+        # Motor types: 1x Kraken, 1x Bag Motor
+        self.lift_motor = TalonFX(ct.AMP_LIFT_MOTOR)
+        self.roller_motor = CANSparkMax(ct.AMP_ROLLER_MOTOR)
 
     def set_eleveation(self, Elevation):
         # Set the elevation of the lift
